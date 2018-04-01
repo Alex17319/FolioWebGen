@@ -28,8 +28,7 @@ namespace FolioWebGen.BackEnd
 		public object ToHtml(PageSectionContext ctx)
 		{
 			return new XElement(
-				"p",
-				new XAttribute("class", "section"),
+				"section",
 				SectionContentsToHtml(ctx)
 			);
 		}

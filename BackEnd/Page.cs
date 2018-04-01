@@ -157,10 +157,7 @@ namespace FolioWebGen.BackEnd
 					new XElement(
 						"main",
 						from section in this.Sections
-						select new XElement(
-							"section",
-							section.SectionContentsToHtml(new PageSectionContext(this, ctx))
-						)
+						select section.ToHtml(new PageSectionContext(this, ctx))
 					)
 				)
 			};
