@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FolioWebGen.BackEnd
 {
-	public class HtmlSnippet : IHtmlPrintable
+	public class HtmlSnippet
 	{
 		public string Html { get; }
 

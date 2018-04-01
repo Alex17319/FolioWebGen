@@ -58,7 +58,6 @@
     <Compile Include="UIInterface.cs" />
     <Compile Include="FileTypes.cs" />
     <Compile Include="Utilities\FileUtils.cs" />
-    <Compile Include="IHtmlPrintable.cs" />
     <Compile Include="Image.cs" />
     <Compile Include="ImageSection.cs" />
     <Compile Include="ISimpleEmbeddable.cs" />

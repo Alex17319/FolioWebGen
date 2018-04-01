@@ -9,7 +9,7 @@ using System.Xml.Linq;
 
 namespace FolioWebGen.BackEnd
 {
-	public abstract class PageSection : IHtmlPrintable
+	public abstract class PageSection
 	{
 		/// <summary>Note: This is the name that is used for sorting</summary>
 		public string Name { get; }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FolioWebGen.BackEnd
 {
-	public interface ISimpleEmbeddable : IHtmlPrintable
+	public interface ISimpleEmbeddable
 	{
 		FileInfo SourcePath { get; }
 	}
