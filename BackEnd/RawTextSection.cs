@@ -20,7 +20,7 @@ namespace FolioWebGen.BackEnd
 			this.Text = text;
 		}
 
-		public override object SectionContentsToHtml(ExternalContentReg extReg)
+		public override object SectionContentsToHtml(PageSectionContext ctx)
 		{
 			return WebUtility.HtmlEncode(
 				Regex.Replace( //Remove all special characters

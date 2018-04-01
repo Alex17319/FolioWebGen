@@ -19,11 +19,11 @@ namespace FolioWebGen.BackEnd
 			this.Images = new ReadOnlyCollection<Image>(images ?? throw new ArgumentNullException(nameof(images)));
 		}
 
-		public override object SectionContentsToHtml(ExternalContentReg extReg)
+		public override object SectionContentsToHtml(PageSectionContext ctx)
 		{
-			extReg.Images.Register(Images);
+			ctx.ExtReg.Images.Register(Images);
 
-			return Images.Select(x => x.ToHtml(extReg));
+			return Images.Select(x => x.ToHtml(ctx.ExtReg));
 		}
 	}
 }

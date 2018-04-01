@@ -37,11 +37,14 @@ namespace FolioWebGen.BackEnd
 	public struct PageSectionContext
 	{
 		public readonly Page Page;
-		public PageContext Ctx;
+		public PageContext PageCtx;
+
+		public Website Website => PageCtx.Website;
+		public ExternalContentReg ExtReg => PageCtx.Website.ExtReg;
 
 		public PageSectionContext(Page page, PageContext ctx) {
 			this.Page = page;
-			this.Ctx = ctx;
+			this.PageCtx = ctx;
 		}
 	}
 }

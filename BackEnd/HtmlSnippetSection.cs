@@ -17,9 +17,9 @@ namespace FolioWebGen.BackEnd
 			this.Snippet = snippet ?? throw new ArgumentNullException(nameof(snippet));
 		}
 
-		public override object SectionContentsToHtml(ExternalContentReg extReg)
+		public override object SectionContentsToHtml(PageSectionContext ctx)
 		{
-			return Snippet.ToHtml(extReg);
+			return Snippet.ToHtml(ctx.ExtReg);
 		}
 	}
 }

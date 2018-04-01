@@ -16,15 +16,10 @@ namespace FolioWebGen.BackEnd
 
 		}
 
-		public override object SectionContentsToHtml(ExternalContentReg extReg)
+		public override object SectionContentsToHtml(PageSectionContext ctx)
 		{
 			//TODO
 			return "TODO: Implement site map";
-		}
-
-		public override object SectionContentsToHtml(PageSectionContext ctx)
-		{
-			throw new NotImplementedException();
 		}
 	}
 }

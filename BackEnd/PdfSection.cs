@@ -18,11 +18,11 @@ namespace FolioWebGen.BackEnd
 			this.Pdf = pdf ?? throw new ArgumentNullException(nameof(pdf));
 		}
 
-		public override object SectionContentsToHtml(ExternalContentReg extReg)
+		public override object SectionContentsToHtml(PageSectionContext ctx)
 		{
-			extReg.Pdfs.Register(Pdf);
+			ctx.PageCtx.Website.ExtReg.Pdfs.Register(Pdf);
 
-			return Pdf.ToHtml(extReg);
+			return Pdf.ToHtml(ctx.PageCtx.Website.ExtReg);
 		}
 	}
 }

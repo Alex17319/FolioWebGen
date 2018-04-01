@@ -20,7 +20,7 @@ namespace FolioWebGen.BackEnd
 			this.LabelledSections = labelledSections.ToList().AsReadOnly();
 		}
 
-		public override object SectionContentsToHtml(ExternalContentReg extReg)
+		public override object SectionContentsToHtml(PageSectionContext ctx)
 		{
 			return new XElement(
 				"div",
@@ -33,7 +33,7 @@ namespace FolioWebGen.BackEnd
 					select new XElement(
 						"div",
 						new XAttribute("class", "multiSectionTabContent"),
-						labelledSection.section.SectionContentsToHtml(extReg)
+						labelledSection.section.SectionContentsToHtml(ctx)
 					)
 				)
 			);

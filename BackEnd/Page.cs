@@ -231,6 +231,8 @@ namespace FolioWebGen.BackEnd
 	{
 		public readonly Website Website;
 
+		public ExternalContentReg ExtReg => Website.ExtReg;
+
 		public PageContext(Website website) {
 			this.Website = website;
 		}

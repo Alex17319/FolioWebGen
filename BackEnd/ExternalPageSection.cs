@@ -18,11 +18,11 @@ namespace FolioWebGen.BackEnd
 			this.Page = page ?? throw new ArgumentNullException(nameof(page));
 		}
 
-		public override object SectionContentsToHtml(ExternalContentReg extReg)
+		public override object SectionContentsToHtml(PageSectionContext ctx)
 		{
-			extReg.HtmlPages.Register(Page);
+			ctx.ExtReg.HtmlPages.Register(Page);
 
-			return Page.ToHtml(extReg);
+			return Page.ToHtml(ctx.ExtReg);
 		}
 	}
 }
