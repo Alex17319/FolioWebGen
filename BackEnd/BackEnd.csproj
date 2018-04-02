@@ -54,6 +54,7 @@
     <Compile Include="MultiFormatFile.cs" />
     <Compile Include="MultiFormatSection.cs" />
     <Compile Include="MultiSection.cs" />
+    <Compile Include="PageDirContents.cs" />
     <Compile Include="SiteMapSection.cs" />
     <Compile Include="UIInterface.cs" />
     <Compile Include="FileTypes.cs" />

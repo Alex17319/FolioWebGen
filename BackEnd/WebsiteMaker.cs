@@ -147,50 +147,6 @@ namespace FolioWebGen.BackEnd
 		//	}
 
 
-		public class PageDirContents
-		{
-			public DirectoryInfo Dir { get; }
-			public IReadOnlyList<FileInfo> Variables { get; }
-			/// <summary>Sorted by name</summary>
-			public IReadOnlyList<FileInfo> PageContent { get; }
-			/// <summary>Not sorted</summary>
-			public IReadOnlyList<DirectoryInfo> Children { get; }
-
-			public PageDirContents(DirectoryInfo dir)
-			{
-				this.Dir = dir ?? throw new ArgumentNullException(nameof(dir));
-
-				this.Variables = dir.GetFiles("$*=*.var");
-
-				this.PageContent = (
-					dir.EnumerateFiles()
-					.Where(f => !f.Name.StartsWith("."))
-					.OrderByNatural(x => x.Name)
-					.ToList()
-				);
-				this.Children = dir.EnumerateDirectories().Where(f => !f.Name.StartsWith(".")).ToList();
-			}
-
-			/// <param name="name">Case insensitive</param>
-			public bool TryGetVarValue(string name, out string value)
-			{
-				string lookup = "$" + name + "=";
-
-				var variable = Variables.SingleOrDefault(
-					v => v.Name.StartsWith(lookup, StringComparison.OrdinalIgnoreCase)
-				);
-
-				if (variable == null) { value = null; return false; }
-
-				value = Path.GetFileNameWithoutExtension(variable.Name.Substring(startIndex: lookup.Length));
-				return true;
-			}
-
-			/// <param name="name">Case insensitive</param>
-			public string GetVarValueOrNull(string name)
-			{
-				return TryGetVarValue(name, out string value) ? value : null;
-			}
-		}
+		
     }
 }
