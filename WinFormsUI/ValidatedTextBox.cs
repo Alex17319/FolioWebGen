@@ -22,10 +22,8 @@ namespace FolioWebGen.WinForms
 		// to be set before any events can be fired, but the 'change-attempted' event should fire before
 		// the 'changed' event (which updating base.Text triggers)
 		public override string Text {
-			get => base.Text;
-			set {
-				TrySetText(value);
-			}
+			get => _text;
+			set => TrySetText(value);
 		}
 		public bool TrySetText(string newValue)
 		{
@@ -48,12 +46,9 @@ namespace FolioWebGen.WinForms
 			}
 			else
 			{
-				base.Text = newValue;
-				// ^ Fires the base TextChanged event, which is weird that it gets fired before the
-				// change-attempted event, but we have to do this first otherwise listeners for the
-				// event below (including the code that syncs this with the settings) won't see the
-				// new value.
+				this._text = newValue;
 				TextChangeAttempted?.Invoke(this, new AttemptEventArgs(success: true));
+				OnTextChanged(EventArgs.Empty);
 
 				return true;
 			}
