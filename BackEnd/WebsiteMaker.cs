@@ -11,10 +11,10 @@ using System.Threading.Tasks;
 
 namespace FolioWebGen.BackEnd
 {
-    public static class WebsiteMaker
-    {
+	public static class WebsiteMaker
+	{
 		public static Website MakeWebsite(DirectoryInfo root)
-        {
+		{
 			return new Website(
 				siteName: "E-Portfolio",
 				root: MakePage(root),
@@ -56,7 +56,7 @@ namespace FolioWebGen.BackEnd
 			if (page == null) throw new ArgumentNullException(nameof(page));
 
 			return page.GetVarValueOrNull("pagename")
-			           ?? StringUtils.RemoveEnclosedSubstrings(page.Dir.Name, delimiter: '~');
+					   ?? StringUtils.RemoveEnclosedSubstrings(page.Dir.Name, delimiter: '~');
 		}
 
 		public static string GetSectionName(FileInfo file)
@@ -148,5 +148,5 @@ namespace FolioWebGen.BackEnd
 
 
 		
-    }
+	}
 }
