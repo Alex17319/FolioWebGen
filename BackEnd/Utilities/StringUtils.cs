@@ -23,7 +23,10 @@ namespace FolioWebGen.Utilities
 			bool isIncluding = true;
 			for (int i = 0; i < source.Length; i++)
 			{
-				if (Array.IndexOf(delimiters, source[i]) >= 0) isIncluding = !isIncluding;
+				if (Array.IndexOf(delimiters, source[i]) >= 0) {
+					isIncluding = !isIncluding;
+					continue;
+				}
 
 				if (isIncluding) dest.Add(source[i]);
 			}
