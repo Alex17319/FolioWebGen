@@ -16,6 +16,15 @@ namespace FolioWebGen.Utilities
 		/// </summary>
 		public static string RemoveEnclosedSubstrings(string source, params char[] delimiters)
 		{
+			return RemoveEnclosedSubstrings(source, (IEnumerable<char>)delimiters);
+		}
+
+		/// <summary>
+		/// Removes all substrings that are enclosed in (or prefixed with) the specified characters.
+		/// For example, RemoveEnclosedSubstrings("ab~cd`ef~gh", '~', '`') returns "abef"
+		/// </summary>
+		public static string RemoveEnclosedSubstrings(string source, IEnumerable<char> delimiters)
+		{
 			if (source == null) throw new ArgumentNullException(nameof(source));
 
 			List<char> dest = new List<char>();
@@ -23,7 +32,7 @@ namespace FolioWebGen.Utilities
 			bool isIncluding = true;
 			for (int i = 0; i < source.Length; i++)
 			{
-				if (Array.IndexOf(delimiters, source[i]) >= 0) {
+				if (delimiters.Contains(source[i])) {
 					isIncluding = !isIncluding;
 					continue;
 				}

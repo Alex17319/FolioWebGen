@@ -12,9 +12,12 @@ namespace FolioWebGen.BackEnd
 {
 	public class Page
 	{
+		private static string DirSeparatorStr => Path.DirectorySeparatorChar.ToString();
+
 		/// <summary>Note: This is the name that is used for sorting</summary>
-		public string Name { get; }
 		public string DisplayName { get; }
+
+		public string UrlName { get; }
 
 		public Page Parent { get; private set; }
 		public bool IsRoot => Parent == null;
@@ -24,7 +27,8 @@ namespace FolioWebGen.BackEnd
 			IsLockedAsRoot = true;
 		}
 
-		public IEnumerable<Page> Ancestors {
+		/// <summary>Returns the current page, parent page, and so on up to the root.</summary>
+		public IEnumerable<Page> ChainToRoot {
 			get {
 				var current = this.Parent;
 				while (current != null) {
@@ -33,11 +37,73 @@ namespace FolioWebGen.BackEnd
 				}
 			}
 		}
+		/// <summary>Returns <see cref="ChainToRoot"/>, but excluding the current page.</summary>
+		public IEnumerable<Page> Ancestors => ChainToRoot.Skip(1);
+		/// <summary>Returns the root page, child-of-root page, and so on down the the current page.</summary>
+		public IEnumerable<Page> ChainFromRoot => ChainToRoot.Reverse(); //There isn't really anything more efficient than this
+
 		public Page Root => Ancestors.LastOrDefault() ?? this;
-		public string PathToRoot => string.Join(
-			separator: Path.DirectorySeparatorChar.ToString(),
-			values: Enumerable.Repeat("..", this.Ancestors.Count())
-		);
+		public string PathToRoot   => string.Join(DirSeparatorStr, Enumerable.Repeat("..", this.Ancestors.Count()));
+		public string PathFromRoot => string.Join(DirSeparatorStr, this.Ancestors.Select(a => a.UrlName)          );
+		public string PathTo(Page other) => PathBetween(this, other);
+		public string PathFrom(Page other) => PathBetween(other, this);
+
+		public static string PathBetween(Page start, Page end)
+		{
+			var chain = ChainBetween(start, end);
+			return string.Join(
+				separator: Path.DirectorySeparatorChar.ToString(),
+				values: (
+					Enumerable.Repeat("..", chain.up.Length)
+					//(don't include the peak of the chain)
+					.Concat(chain.down.Select(x => x.UrlName))
+				)
+			);
+		}
+		/// <summary>
+		/// Return the chain of pages needed to navigate between a start and end page,
+		/// first travelling up the tree, then peaking at the closest common ancestor,
+		/// then descending down to the destination.
+		/// </summary>
+		public static (Page[] up, Page peak, Page[] down) ChainBetween(Page start, Page end)
+		{
+			if (start == null) throw new ArgumentNullException(nameof(start));
+			if (end == null) throw new ArgumentNullException(nameof(end));
+
+			if (start.Root != end.Root) throw new InvalidOperationException(
+				$"Pages '{start.DisplayName}' and '{end.DisplayName}' do not share a common root."
+			);
+
+			var startRootChain = start.ChainToRoot.ToList();
+			var endRootChain = end.ChainToRoot.ToList();
+			startRootChain.Reverse();
+			endRootChain.Reverse();
+
+			int numCommonAncestors = startRootChain.Zip(endRootChain, (s, e) => (s, e)).Count(x => x.s == x.e);
+
+			int numUniqueStartAncestors = startRootChain.Count - numCommonAncestors;
+			int numUniqueEndAncestors = endRootChain.Count - numCommonAncestors;
+
+			//Set up result variables
+			var up = new Page[numUniqueStartAncestors];
+			var peak = (Page)null;
+			var down = new Page[numUniqueEndAncestors];
+
+			//Assign result variables & return
+
+			if (numCommonAncestors < startRootChain.Count) { //Avoid index out-of-range exception
+				startRootChain.CopyTo(index: numCommonAncestors, array: up, arrayIndex: 0, count: numUniqueStartAncestors);
+			}
+			Array.Reverse(up);
+
+			peak = startRootChain[numCommonAncestors]; //Closest common ancestor
+
+			if (numCommonAncestors < endRootChain.Count) { //Avoid index out-of-range exception
+				endRootChain.CopyTo(index: numCommonAncestors, array: down, arrayIndex: 0, count: numUniqueEndAncestors);
+			}
+
+			return (up, peak, down);
+		}
 
 		public IReadOnlyList<PageSection> Sections { get; }
 
@@ -45,9 +111,9 @@ namespace FolioWebGen.BackEnd
 
 		public IReadOnlyDictionary<string, string> PageMetadata { get; }
 
-		public Page(string name, IReadOnlyList<PageSection> sections, IEnumerable<Page> children, IReadOnlyDictionary<string, string> pageMetadata)
+		public Page(string displayName, IReadOnlyList<PageSection> sections, IEnumerable<Page> children, IReadOnlyDictionary<string, string> pageMetadata)
 		{
-			if (name == null) throw new ArgumentNullException(nameof(name));
+			if (displayName == null) throw new ArgumentNullException(nameof(displayName));
 			if (sections == null) throw new ArgumentNullException(nameof(sections));
 			if (children == null) throw new ArgumentNullException(nameof(children));
 			if (pageMetadata == null) throw new ArgumentNullException(nameof(pageMetadata));
@@ -67,8 +133,8 @@ namespace FolioWebGen.BackEnd
 				i++;
 			}
 
-			this.Name = name;
-			this.DisplayName = StringUtils.GetItemDisplayName(name);
+			this.DisplayName = displayName;
+			this.UrlName = StringUtils.GetItemUrlName(displayName);
 			this.Sections = sections;
 			this.Children = children.OrderByNatural(x => x.DisplayName).ToList();
 			this.PageMetadata = pageMetadata;

@@ -13,6 +13,11 @@ namespace FolioWebGen.BackEnd
 {
 	public static class WebsiteMaker
 	{
+		/// <summary>
+		/// Used (interchangeably) to cut out parts of names, eg ab~cd~ef~gh`ik produces abefik
+		/// </summary>
+		public static readonly ReadOnlyCollection<char> NameCutterDelimiters = Array.AsReadOnly(new[] { '~', '`' });
+
 		public static Website MakeWebsite(DirectoryInfo root)
 		{
 			return new Website(
@@ -40,7 +45,7 @@ namespace FolioWebGen.BackEnd
 			var dirContents = new PageDirContents(dir);
 
 			return new Page(
-				name: GetPageName(dirContents),
+				displayName: GetPageDisplayName(dirContents),
 				sections: GetPageSections(
 					dirContents.PageContent
 					.GroupBy(file => file.GetNameWithoutExt(), (name, files) => new MultiFormatFile(name, files))
@@ -51,19 +56,19 @@ namespace FolioWebGen.BackEnd
 			);
 		}
 
-		public static string GetPageName(PageDirContents page)
+		public static string GetPageDisplayName(PageDirContents page)
 		{
 			if (page == null) throw new ArgumentNullException(nameof(page));
 
 			return page.GetVarValueOrNull("pagename")
-					   ?? StringUtils.RemoveEnclosedSubstrings(page.Dir.Name, delimiter: '~');
+					   ?? StringUtils.RemoveEnclosedSubstrings(page.Dir.Name, NameCutterDelimiters);
 		}
 
 		public static string GetSectionName(FileInfo file)
 		{
 			if (file == null) throw new ArgumentNullException(nameof(file));
 
-			return StringUtils.RemoveEnclosedSubstrings(file.GetNameWithoutExt(), delimiter: '~');
+			return StringUtils.RemoveEnclosedSubstrings(file.GetNameWithoutExt(), NameCutterDelimiters);
 		}
 
 		public static IEnumerable<PageSection> GetPageSections(IReadOnlyList<MultiFormatFile> pageContent)
