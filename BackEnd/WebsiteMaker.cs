@@ -40,15 +40,15 @@ namespace FolioWebGen.BackEnd
 			var dirContents = new PageDirContents(dir);
 
 			return new Page(
-				displayName: dirContents.DisplayName,
+				fileName: dirContents.FileName,
 				sections: GetPageSections(
 					dirContents.PageContent
 					.Select(file => new SingleFormatFile(file))
 					.GroupBy(file => file.FileNameWithoutExtension, (name, files) => new MultiFormatFile(files))
 					.ToList()
-				).ToList(),
-				children: dirContents.Children.Select(c => MakePage(c)).ToList(),
-				pageMetadata: new ReadOnlyDictionary<string, string>(new Dictionary<string, string>())
+				),
+				children: dirContents.Children.Select(c => MakePage(c)),
+				pageMetadata: new ReadOnlyDictionary<string, string>(new Dictionary<string, string>()) //TODO: Page metadata
 			);
 		}
 
@@ -57,43 +57,43 @@ namespace FolioWebGen.BackEnd
 			for (int i = 0; i < pageContent.Count; i++) 
 			{
 				var multiFile = pageContent[i];
-				string fileDisplayName = multiFile.DisplayName;
+				string fileName = multiFile.ExtensionlessFileName;
 
 				var formats = new List<PageSection>();
 
 				foreach (var f in multiFile.Files)
 				{
 					if (FileTypes.IsRawTextDocument(f.Extension)) {
-						formats.Add(new RawTextSection(fileDisplayName, f.FileInfo.OpenText().ReadToEnd()));
+						formats.Add(new RawTextSection(fileName, f.FileInfo.OpenText().ReadToEnd()));
 						continue;
 					}
 
 					if (FileTypes.IsImage(f.Extension)) {
-						formats.Add(new ImageSection(fileDisplayName, new[] { new Image(f) }));
+						formats.Add(new ImageSection(fileName, new[] { new Image(f) }));
 						continue;
 					}
 
 					if (FileTypes.IsPdf(f.Extension)) {
-						formats.Add(new PdfSection(fileDisplayName, new Pdf(f)));
+						formats.Add(new PdfSection(fileName, new Pdf(f)));
 						continue;
 					}
 
 					if (FileTypes.IsExternalPage(f.Extension)) {
-						formats.Add(new ExternalHtmlSection(fileDisplayName, new HtmlPage(f)));
+						formats.Add(new ExternalHtmlSection(fileName, new HtmlPage(f)));
 						continue;
 					}
 
 					if (FileTypes.IsHtmlSnippet(f.Extension)) {
-						formats.Add(new HtmlSnippetSection(fileDisplayName, new HtmlSnippet(f.FileInfo.OpenText().ReadToEnd())));
+						formats.Add(new HtmlSnippetSection(fileName, new HtmlSnippet(f.FileInfo.OpenText().ReadToEnd())));
 						continue;
 					}
 
 					formats.Add(
 						new RawTextSection(
-							fileDisplayName,
-							"ERROR: PAGE CONTENT ITEM TYPE \"" + f + "\" IS NOT RECOGNISED\r\n"
+							fileName,
+							"ERROR: PAGE CONTENT ITEM TYPE \"" + f.Extension + "\" IS NOT RECOGNISED\r\n"
 							+ "FILE LOCATION IN WEBSITE GENERATOR INPUT: \"" + f.Path + "\"\r\n"
-							+ "FILE CONTENTS:"
+							+ "FILE CONTENTS:\r\n"
 							+ f.FileInfo.OpenText().ReadToEnd()
 						)
 					);

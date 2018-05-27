@@ -15,6 +15,7 @@ namespace FolioWebGen.BackEnd
 		private static string DirSeparatorStr => Path.DirectorySeparatorChar.ToString();
 
 		/// <summary>Note: This is the name that is used for sorting</summary>
+		public string FileName { get; }
 		public string DisplayName { get; }
 
 		public string UrlName { get; }
@@ -48,38 +49,41 @@ namespace FolioWebGen.BackEnd
 		public string PathTo(Page other) => PathBetween(this, other);
 		public string PathFrom(Page other) => PathBetween(other, this);
 
-		public IReadOnlyList<PageSection> Sections { get; }
+		public ReadOnlyCollection<PageSection> Sections { get; }
 
-		public IReadOnlyList<Page> Children { get; }
+		public ReadOnlyCollection<Page> Children { get; }
 
 		public IReadOnlyDictionary<string, string> PageMetadata { get; }
 
-		public Page(string displayName, IReadOnlyList<PageSection> sections, IEnumerable<Page> children, IReadOnlyDictionary<string, string> pageMetadata)
+		/// <summary></summary>
+		/// <param name="fileName"></param>
+		/// <param name="sections"></param>
+		/// <param name="children">can be unordered</param>
+		/// <param name="pageMetadata"></param>
+		public Page(string fileName, IEnumerable<PageSection> sections, IEnumerable<Page> children, IReadOnlyDictionary<string, string> pageMetadata)
 		{
-			if (displayName == null) throw new ArgumentNullException(nameof(displayName));
+			if (fileName == null) throw new ArgumentNullException(nameof(fileName));
 			if (sections == null) throw new ArgumentNullException(nameof(sections));
 			if (children == null) throw new ArgumentNullException(nameof(children));
 			if (pageMetadata == null) throw new ArgumentNullException(nameof(pageMetadata));
 
-			int i = 0;
 			foreach (var child in children)
 			{
 				if (child.Parent != null) throw new ArgumentException(
-					"Page at index " + i + " in child pages list already has a parent '" + child.Parent + "'."
+					"Page '" + child.FileName + "' in child pages list already has a parent '" + child.Parent + "'."
 				);
 				else if (child.IsLockedAsRoot) throw new ArgumentException(
-					"Page at index " + i + " in child pages list is locked as a root page "
+					"Page '" + child.FileName + "' in child pages list is locked as a root page "
 					+ "so cannot be used as a child page."
 				);
 				else child.Parent = this;
-
-				i++;
 			}
 
-			this.DisplayName = displayName;
-			this.UrlName = StringUtils.GetItemUrlName(displayName);
-			this.Sections = sections;
-			this.Children = children.OrderByNatural(x => x.DisplayName).ToList();
+			this.FileName = fileName;
+			this.DisplayName = StringUtils.GetItemDisplayName(fileName: this.FileName);
+			this.UrlName = StringUtils.GetItemUrlName(displayName: this.DisplayName);
+			this.Sections = sections.OrderByNatural(x => x.FileName).ToList().AsReadOnly();
+			this.Children = children.OrderByNatural(x => x.FileName).ToList().AsReadOnly();
 			this.PageMetadata = pageMetadata;
 		}
 

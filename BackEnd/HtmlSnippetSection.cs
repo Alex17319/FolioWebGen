@@ -12,7 +12,7 @@ namespace FolioWebGen.BackEnd
 
 		public override string Format => "Html";
 
-		public HtmlSnippetSection(string displayName, HtmlSnippet snippet) : base(displayName)
+		public HtmlSnippetSection(string fileName, HtmlSnippet snippet) : base(fileName)
 		{
 			this.Snippet = snippet ?? throw new ArgumentNullException(nameof(snippet));
 		}

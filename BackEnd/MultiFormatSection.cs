@@ -11,7 +11,7 @@ namespace FolioWebGen.BackEnd
 	{
 		public MultiFormatSection(IEnumerable<PageSection> formats)
 			: base(
-				name: "", //Don't want to display the name twice
+				fileName: "", //Don't want to display the name twice //TODO: Investigate & clarify
 				labelledSections: formats.Select(x => (section: x, label: x.Format))
 			)
 		{ }

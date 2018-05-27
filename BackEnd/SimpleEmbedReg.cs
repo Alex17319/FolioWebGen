@@ -16,7 +16,7 @@ namespace FolioWebGen.BackEnd
 		public string OnlineRoot { get; }
 
 		private readonly HashSet<T> _items;
-		public IEnumerable<T> Items { get { return _items; } }
+		public IEnumerable<T> Items => _items;
 
 		public SimpleEmbedReg(DirectoryInfo sourceRoot, string onlineRoot, IEqualityComparer<T> comparer = null)
 		{
@@ -60,7 +60,7 @@ namespace FolioWebGen.BackEnd
 				fileName = (
 					fileName.Substring(0, length: 17)
 					+ "..."
-					+ fileName.Substring(startIndex: fileName.Length - 80)
+					+ fileName.Substring(startIndex: fileName.Length - (maxFileNameLength - 17 - 3))
 				);
 			}
 

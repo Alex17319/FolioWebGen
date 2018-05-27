@@ -13,7 +13,7 @@ namespace FolioWebGen.BackEnd
 
 		public override string Format => "Pdf";
 
-		public PdfSection(string displayName, Pdf pdf) : base(displayName)
+		public PdfSection(string fileName, Pdf pdf) : base(fileName)
 		{
 			this.Pdf = pdf ?? throw new ArgumentNullException(nameof(pdf));
 		}

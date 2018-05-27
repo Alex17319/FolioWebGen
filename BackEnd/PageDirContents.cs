@@ -17,9 +17,9 @@ namespace FolioWebGen.BackEnd
 		public string DisplayName { get; }
 
 		public IReadOnlyList<FileInfo> Variables { get; }
-		/// <summary>Sorted by name</summary>
+		/// <summary>Sorted by name</summary> //TODO: Remove
 		public IReadOnlyList<FileInfo> PageContent { get; }
-		/// <summary>Not sorted</summary>
+		/// <summary>Sorted by name</summary> //TODO: Remove
 		public IReadOnlyList<DirectoryInfo> Children { get; }
 
 		public PageDirContents(DirectoryInfo dir)
@@ -27,7 +27,6 @@ namespace FolioWebGen.BackEnd
 			this.Dir = dir ?? throw new ArgumentNullException(nameof(dir));
 
 			this.FileName = dir.Name;
-			this.DisplayName = StringUtils.GetItemDisplayName(dir.Name);
 
 			this.Variables = new List<FileInfo>(
 				Enumerable.Concat(
@@ -39,13 +38,13 @@ namespace FolioWebGen.BackEnd
 			this.PageContent = (
 				dir.EnumerateFiles()
 				.Where(f => !f.Name.StartsWith("."))
-				.OrderByNatural(x => x.Name) //Sort now (before formatting the names) so that the sort order is the same as when the files are created
+				//.OrderByNatural(x => x.Name) //Sort now (before formatting the names) so that the sort order is the same as when the files are created
 				.ToList()
 			);
 			this.Children = (
 				dir.EnumerateDirectories()
 				.Where(f => !f.Name.StartsWith("."))
-				.OrderByNatural(x => x.Name) //See above
+				//.OrderByNatural(x => x.Name) //See above
 				.ToList()
 			);
 		}

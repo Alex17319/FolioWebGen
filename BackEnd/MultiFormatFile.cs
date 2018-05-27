@@ -12,10 +12,10 @@ namespace FolioWebGen.BackEnd
 	{
 		public ReadOnlyCollection<SingleFormatFile> Files { get; }
 		/// <summary>
-		/// The file display name, without an extension, that applies to all contained files.
-		/// '~' characters (and anything else similar) are already handled.
+		/// The file name (without an extension) that is the same for all different-format files
+		/// in the multi-format-file.
 		/// </summary>
-		public string DisplayName { get; }
+		public string ExtensionlessFileName { get; }
 
 		public MultiFormatFile(IEnumerable<SingleFormatFile> files)
 		{
@@ -24,22 +24,31 @@ namespace FolioWebGen.BackEnd
 			this.Files = files.ToList().AsReadOnly();
 			if (this.Files.Count == 0) throw new ArgumentException("Cannot be empty.", nameof(files));
 
-			this.DisplayName = this.Files[0].DisplayName;
+			//In order to sort files in the same order as when they are created in explorer (i.e. in order
+			//to pay attention to files starting with "~1~", "~2~", etc), the original file names need
+			//to be used for sorting. In order to make this as predictable and reasonable as possible,
+			//this means that for all files in a MultiFormatFile, the original file names must be the
+			//same (not just the display names as I'd previously intended).
+			//Additionally, the filename has to be kept until the Page/PageSections are created,
+			//so combined with the above new sorting/duplication rule that means that the display
+			//names don't need to be generate until then.
+
+			this.ExtensionlessFileName = Path.GetFileNameWithoutExtension(this.Files[0].FileName);
 
 			//All just error checking
-			List<string> differentDisplayNames = null; //Avoid allocating if everything's valid
+			List<string> differentFileNames = null; //Avoid allocating if everything's valid
 			for (var i = 1; i < this.Files.Count; i++)
 			{
-				if (this.Files[i].DisplayName != DisplayName)
+				if (Path.GetFileNameWithoutExtension(this.Files[i].FileName) != this.ExtensionlessFileName)
 				{
-					differentDisplayNames = differentDisplayNames ?? null;
-					differentDisplayNames.Add(this.Files[i].DisplayName);
+					differentFileNames = differentFileNames ?? null;
+					differentFileNames.Add(this.Files[i].FileName);
 				}
 			}
-			if (differentDisplayNames != null) throw new ArgumentException(
-				$"The first file has display name '{this.DisplayName}' "
-				+ "but some other files have different display names: "
-				+ string.Join(", ", differentDisplayNames)
+			if (differentFileNames != null) throw new ArgumentException(
+				$"The first file has file name '{this.Files[0].FileName}' " //don't use this.ExtensionlessFileName as it's extensionless
+				+ "but some other files have different file names: "
+				+ string.Join(", ", differentFileNames)
 				+ "."
 			);
 		}
