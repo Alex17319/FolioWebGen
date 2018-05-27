@@ -10,7 +10,7 @@ namespace FolioWebGen.BackEnd
 {
 	public class HtmlPage : SimpleEmbeddable<HtmlPage>
 	{
-		public HtmlPage(FileInfo sourcePath) : base(sourcePath) { }
+		public HtmlPage(SingleFormatFile sourcePath) : base(sourcePath) { }
 
 		public override object ToHtml(ExternalContentReg extReg)
 		{

@@ -12,15 +12,15 @@ namespace FolioWebGen.BackEnd
 	public abstract class PageSection
 	{
 		/// <summary>Note: This is the name that is used for sorting</summary>
-		public string Name { get; }
 		public string DisplayName { get; }
+		public string CodeName { get; }
 
 		public abstract string Format { get; }
 
-		public PageSection(string name)
+		public PageSection(string displayName)
 		{
-			this.Name = string.IsNullOrWhiteSpace(name) ? "" : name;
-			this.DisplayName = string.IsNullOrWhiteSpace(name) ? "" : StringUtils.GetItemDisplayName(name);
+			this.DisplayName = string.IsNullOrWhiteSpace(displayName) ? "" : displayName;
+			this.CodeName = string.IsNullOrWhiteSpace(displayName) ? "" : StringUtils.GetItemUrlName(CodeName);
 		}
 
 		public abstract object SectionContentsToHtml(PageSectionContext ctx);

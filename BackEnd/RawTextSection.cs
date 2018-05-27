@@ -15,7 +15,7 @@ namespace FolioWebGen.BackEnd
 
 		public override string Format => "Text";
 
-		public RawTextSection(string name, string text) : base(name)
+		public RawTextSection(string displayName, string text) : base(displayName)
 		{
 			this.Text = text;
 		}

@@ -13,6 +13,9 @@ namespace FolioWebGen.BackEnd
 	public class PageDirContents
 	{
 		public DirectoryInfo Dir { get; }
+		public string FileName { get; }
+		public string DisplayName { get; }
+
 		public IReadOnlyList<FileInfo> Variables { get; }
 		/// <summary>Sorted by name</summary>
 		public IReadOnlyList<FileInfo> PageContent { get; }
@@ -23,9 +26,12 @@ namespace FolioWebGen.BackEnd
 		{
 			this.Dir = dir ?? throw new ArgumentNullException(nameof(dir));
 
+			this.FileName = dir.Name;
+			this.DisplayName = StringUtils.GetItemDisplayName(dir.Name);
+
 			this.Variables = new List<FileInfo>(
 				Enumerable.Concat(
-					dir.GetFiles("$*=*.var"),
+					dir.GetFiles("$*=*.var"), //TODO: Change to "$*$=*.var" (have to search for .var files to make this change)
 					dir.GetFiles("$*$.var")
 				)
 			).AsReadOnly();

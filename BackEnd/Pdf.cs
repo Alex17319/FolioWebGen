@@ -10,7 +10,7 @@ namespace FolioWebGen.BackEnd
 {
 	public class Pdf : SimpleEmbeddable<Pdf>
 	{
-		public Pdf(FileInfo sourcePath) : base(sourcePath) { }
+		public Pdf(SingleFormatFile sourcePath) : base(sourcePath) { }
 
 		public override object ToHtml(ExternalContentReg extReg)
 		{

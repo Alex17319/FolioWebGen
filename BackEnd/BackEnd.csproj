@@ -55,13 +55,14 @@
     <Compile Include="MultiFormatSection.cs" />
     <Compile Include="MultiSection.cs" />
     <Compile Include="PageDirContents.cs" />
+    <Compile Include="SingleFormatFile.cs" />
     <Compile Include="SiteMapSection.cs" />
     <Compile Include="UIInterface.cs" />
     <Compile Include="FileTypes.cs" />
     <Compile Include="Utilities\FileUtils.cs" />
     <Compile Include="Image.cs" />
     <Compile Include="ImageSection.cs" />
-    <Compile Include="ISimpleEmbeddable.cs" />
+    <Compile Include="SimpleEmbeddable.cs" />
     <Compile Include="Page.cs" />
     <Compile Include="PageSection.cs" />
     <Compile Include="Pdf.cs" />

@@ -9,15 +9,15 @@ namespace FolioWebGen.BackEnd
 {
 	public interface ISimpleEmbeddable
 	{
-		FileInfo SourcePath { get; }
+		SingleFormatFile SourcePath { get; }
 	}
 
 	public abstract class SimpleEmbeddable<TSelf> : ISimpleEmbeddable
 		where TSelf : SimpleEmbeddable<TSelf>
 	{
-		public FileInfo SourcePath { get; }
+		public SingleFormatFile SourcePath { get; }
 
-		public SimpleEmbeddable(FileInfo sourcePath)
+		public SimpleEmbeddable(SingleFormatFile sourcePath)
 		{
 			this.SourcePath = sourcePath ?? throw new ArgumentNullException(nameof(sourcePath));
 		}
@@ -40,14 +40,14 @@ namespace FolioWebGen.BackEnd
 		/// </summary>
 		public static bool Equals(SimpleEmbeddable<TSelf> a, SimpleEmbeddable<TSelf> b)
 		{
-			return a.SourcePath.FullName == b.SourcePath.FullName
-				|| Path.GetFullPath(a.SourcePath.FullName) == Path.GetFullPath(b.SourcePath.FullName);
+			return a.SourcePath.Path == b.SourcePath.Path
+				|| Path.GetFullPath(a.SourcePath.Path) == Path.GetFullPath(b.SourcePath.Path);
 			//Idk if the second part is actually needed or if the first part does the same thing
 		}
 
 		public override int GetHashCode()
 		{
-			return Path.GetFullPath(SourcePath.FullName).GetHashCode(); //Idk if GetFullPath is needed
+			return Path.GetFullPath(SourcePath.Path).GetHashCode();
 		}
 
 		public static bool operator ==(SimpleEmbeddable<TSelf> a, SimpleEmbeddable<TSelf> b) => Equals(a, b);

@@ -13,11 +13,6 @@ namespace FolioWebGen.BackEnd
 {
 	public static class WebsiteMaker
 	{
-		/// <summary>
-		/// Used (interchangeably) to cut out parts of names, eg ab~cd~ef~gh`ik produces abefik
-		/// </summary>
-		public static readonly ReadOnlyCollection<char> NameCutterDelimiters = Array.AsReadOnly(new[] { '~', '`' });
-
 		public static Website MakeWebsite(DirectoryInfo root)
 		{
 			return new Website(
@@ -45,10 +40,11 @@ namespace FolioWebGen.BackEnd
 			var dirContents = new PageDirContents(dir);
 
 			return new Page(
-				displayName: GetPageDisplayName(dirContents),
+				displayName: dirContents.DisplayName,
 				sections: GetPageSections(
 					dirContents.PageContent
-					.GroupBy(file => file.GetNameWithoutExt(), (name, files) => new MultiFormatFile(name, files))
+					.Select(file => new SingleFormatFile(file))
+					.GroupBy(file => file.FileNameWithoutExtension, (name, files) => new MultiFormatFile(files))
 					.ToList()
 				).ToList(),
 				children: dirContents.Children.Select(c => MakePage(c)).ToList(),
@@ -56,64 +52,49 @@ namespace FolioWebGen.BackEnd
 			);
 		}
 
-		public static string GetPageDisplayName(PageDirContents page)
-		{
-			if (page == null) throw new ArgumentNullException(nameof(page));
-
-			return page.GetVarValueOrNull("pagename")
-					   ?? StringUtils.RemoveEnclosedSubstrings(page.Dir.Name, NameCutterDelimiters);
-		}
-
-		public static string GetSectionName(FileInfo file)
-		{
-			if (file == null) throw new ArgumentNullException(nameof(file));
-
-			return StringUtils.RemoveEnclosedSubstrings(file.GetNameWithoutExt(), NameCutterDelimiters);
-		}
-
 		public static IEnumerable<PageSection> GetPageSections(IReadOnlyList<MultiFormatFile> pageContent)
 		{
 			for (int i = 0; i < pageContent.Count; i++) 
 			{
 				var multiFile = pageContent[i];
-				string fileName = multiFile.Name;
+				string fileDisplayName = multiFile.DisplayName;
 
 				var formats = new List<PageSection>();
 
 				foreach (var f in multiFile.Files)
 				{
 					if (FileTypes.IsRawTextDocument(f.Extension)) {
-						formats.Add(new RawTextSection(fileName, f.OpenText().ReadToEnd()));
+						formats.Add(new RawTextSection(fileDisplayName, f.FileInfo.OpenText().ReadToEnd()));
 						continue;
 					}
 
 					if (FileTypes.IsImage(f.Extension)) {
-						formats.Add(new ImageSection(fileName, new[] { new Image(f) }));
+						formats.Add(new ImageSection(fileDisplayName, new[] { new Image(f) }));
 						continue;
 					}
 
 					if (FileTypes.IsPdf(f.Extension)) {
-						formats.Add(new PdfSection(fileName, new Pdf(f)));
+						formats.Add(new PdfSection(fileDisplayName, new Pdf(f)));
 						continue;
 					}
 
 					if (FileTypes.IsExternalPage(f.Extension)) {
-						formats.Add(new ExternalHtmlSection(fileName, new HtmlPage(f)));
+						formats.Add(new ExternalHtmlSection(fileDisplayName, new HtmlPage(f)));
 						continue;
 					}
 
 					if (FileTypes.IsHtmlSnippet(f.Extension)) {
-						formats.Add(new HtmlSnippetSection(fileName, new HtmlSnippet(f.OpenText().ReadToEnd())));
+						formats.Add(new HtmlSnippetSection(fileDisplayName, new HtmlSnippet(f.FileInfo.OpenText().ReadToEnd())));
 						continue;
 					}
 
 					formats.Add(
 						new RawTextSection(
-							fileName,
+							fileDisplayName,
 							"ERROR: PAGE CONTENT ITEM TYPE \"" + f + "\" IS NOT RECOGNISED\r\n"
-							+ "FILE LOCATION IN WEBSITE GENERATOR INPUT: \"" + f.FullName + "\"\r\n"
+							+ "FILE LOCATION IN WEBSITE GENERATOR INPUT: \"" + f.Path + "\"\r\n"
 							+ "FILE CONTENTS:"
-							+ f.OpenText().ReadToEnd()
+							+ f.FileInfo.OpenText().ReadToEnd()
 						)
 					);
 				}

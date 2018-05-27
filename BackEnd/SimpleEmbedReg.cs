@@ -37,7 +37,7 @@ namespace FolioWebGen.BackEnd
 		{
 			string relativePath = FileUtils.GetRelativePath(
 				fromPath: SourceRoot.FullName,
-				toPath: item.SourcePath.FullName
+				toPath: item.SourcePath.Path
 			);
 
 			string fileName = Path.Combine(

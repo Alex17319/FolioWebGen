@@ -48,63 +48,6 @@ namespace FolioWebGen.BackEnd
 		public string PathTo(Page other) => PathBetween(this, other);
 		public string PathFrom(Page other) => PathBetween(other, this);
 
-		public static string PathBetween(Page start, Page end)
-		{
-			var chain = ChainBetween(start, end);
-			return string.Join(
-				separator: Path.DirectorySeparatorChar.ToString(),
-				values: (
-					Enumerable.Repeat("..", chain.up.Length)
-					//(don't include the peak of the chain)
-					.Concat(chain.down.Select(x => x.UrlName))
-				)
-			);
-		}
-		/// <summary>
-		/// Return the chain of pages needed to navigate between a start and end page,
-		/// first travelling up the tree, then peaking at the closest common ancestor,
-		/// then descending down to the destination.
-		/// </summary>
-		public static (Page[] up, Page peak, Page[] down) ChainBetween(Page start, Page end)
-		{
-			if (start == null) throw new ArgumentNullException(nameof(start));
-			if (end == null) throw new ArgumentNullException(nameof(end));
-
-			if (start.Root != end.Root) throw new InvalidOperationException(
-				$"Pages '{start.DisplayName}' and '{end.DisplayName}' do not share a common root."
-			);
-
-			var startRootChain = start.ChainToRoot.ToList();
-			var endRootChain = end.ChainToRoot.ToList();
-			startRootChain.Reverse();
-			endRootChain.Reverse();
-
-			int numCommonAncestors = startRootChain.Zip(endRootChain, (s, e) => (s, e)).Count(x => x.s == x.e);
-
-			int numUniqueStartAncestors = startRootChain.Count - numCommonAncestors;
-			int numUniqueEndAncestors = endRootChain.Count - numCommonAncestors;
-
-			//Set up result variables
-			var up = new Page[numUniqueStartAncestors];
-			var peak = (Page)null;
-			var down = new Page[numUniqueEndAncestors];
-
-			//Assign result variables & return
-
-			if (numCommonAncestors < startRootChain.Count) { //Avoid index out-of-range exception
-				startRootChain.CopyTo(index: numCommonAncestors, array: up, arrayIndex: 0, count: numUniqueStartAncestors);
-			}
-			Array.Reverse(up);
-
-			peak = startRootChain[numCommonAncestors]; //Closest common ancestor
-
-			if (numCommonAncestors < endRootChain.Count) { //Avoid index out-of-range exception
-				endRootChain.CopyTo(index: numCommonAncestors, array: down, arrayIndex: 0, count: numUniqueEndAncestors);
-			}
-
-			return (up, peak, down);
-		}
-
 		public IReadOnlyList<PageSection> Sections { get; }
 
 		public IReadOnlyList<Page> Children { get; }
@@ -290,6 +233,63 @@ namespace FolioWebGen.BackEnd
 					select child.GetDropdownItem()
 				)
 			);
+		}
+
+		public static string PathBetween(Page start, Page end)
+		{
+			var chain = ChainBetween(start, end);
+			return string.Join(
+				separator: Path.DirectorySeparatorChar.ToString(),
+				values: (
+					Enumerable.Repeat("..", chain.up.Length)
+					//(don't include the peak of the chain)
+					.Concat(chain.down.Select(x => x.UrlName))
+				)
+			);
+		}
+		/// <summary>
+		/// Return the chain of pages needed to navigate between a start and end page,
+		/// first travelling up the tree, then peaking at the closest common ancestor,
+		/// then descending down to the destination.
+		/// </summary>
+		public static (Page[] up, Page peak, Page[] down) ChainBetween(Page start, Page end)
+		{
+			if (start == null) throw new ArgumentNullException(nameof(start));
+			if (end == null) throw new ArgumentNullException(nameof(end));
+
+			if (start.Root != end.Root) throw new InvalidOperationException(
+				$"Pages '{start.DisplayName}' and '{end.DisplayName}' do not share a common root."
+			);
+
+			var startRootChain = start.ChainToRoot.ToList();
+			var endRootChain = end.ChainToRoot.ToList();
+			startRootChain.Reverse();
+			endRootChain.Reverse();
+
+			int numCommonAncestors = startRootChain.Zip(endRootChain, (s, e) => (s, e)).Count(x => x.s == x.e);
+
+			int numUniqueStartAncestors = startRootChain.Count - numCommonAncestors;
+			int numUniqueEndAncestors = endRootChain.Count - numCommonAncestors;
+
+			//Set up result variables
+			var up = new Page[numUniqueStartAncestors];
+			var peak = (Page)null;
+			var down = new Page[numUniqueEndAncestors];
+
+			//Assign result variables & return
+
+			if (numCommonAncestors < startRootChain.Count) { //Avoid index out-of-range exception
+				startRootChain.CopyTo(index: numCommonAncestors, array: up, arrayIndex: 0, count: numUniqueStartAncestors);
+			}
+			Array.Reverse(up);
+
+			peak = startRootChain[numCommonAncestors]; //Closest common ancestor
+
+			if (numCommonAncestors < endRootChain.Count) { //Avoid index out-of-range exception
+				endRootChain.CopyTo(index: numCommonAncestors, array: down, arrayIndex: 0, count: numUniqueEndAncestors);
+			}
+
+			return (up, peak, down);
 		}
 	}
 

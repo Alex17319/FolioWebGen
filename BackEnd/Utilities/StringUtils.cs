@@ -67,6 +67,14 @@ namespace FolioWebGen.Utilities
 			return Regex.Replace(displayName, @"([^\w\d\+\'\,\.-]|\s|_)+", "-");
 		}
 
+		/// <summary>
+		/// Removes the extension and cuts out text surrounded by ~ or ` characters (interchangeably)
+		/// </summary>
+		public static string GetItemDisplayName(string fileName)
+		{
+			return RemoveEnclosedSubstrings(Path.GetFileNameWithoutExtension(fileName), '~', '`');
+		}
+
 		//Idk why I was trying to expand camelCase or similar into
 		//text with spaces, rather than just taking text with spaces (which
 		//can easily be used instead) and then replacing the spaces with dashes

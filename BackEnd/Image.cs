@@ -10,7 +10,7 @@ namespace FolioWebGen.BackEnd
 {
 	public class Image : SimpleEmbeddable<Image>
 	{
-		public Image(FileInfo sourcePath) : base(sourcePath) { }
+		public Image(SingleFormatFile sourcePath) : base(sourcePath) { }
 
 		public override object ToHtml(ExternalContentReg extReg)
 		{
