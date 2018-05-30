@@ -16,11 +16,11 @@ namespace FolioWebGen.BackEnd
 		public string FileName { get; }
 		public string DisplayName { get; }
 
-		public IReadOnlyList<FileInfo> Variables { get; }
-		/// <summary>Sorted by name</summary> //TODO: Remove
-		public IReadOnlyList<FileInfo> PageContent { get; }
-		/// <summary>Sorted by name</summary> //TODO: Remove
-		public IReadOnlyList<DirectoryInfo> Children { get; }
+		public ReadOnlyCollection<FileInfo> Variables { get; }
+		/// <summary>Unsorted (sorted later - the original file names are kept to keep the original order)</summary>
+		public ReadOnlyCollection<FileInfo> PageContent { get; }
+		/// <summary>Unsorted (sorted later - the original file names are kept to keep the original order)</summary>
+		public ReadOnlyCollection<DirectoryInfo> Children { get; }
 
 		public PageDirContents(DirectoryInfo dir)
 		{
@@ -38,14 +38,14 @@ namespace FolioWebGen.BackEnd
 			this.PageContent = (
 				dir.EnumerateFiles()
 				.Where(f => !f.Name.StartsWith("."))
-				//.OrderByNatural(x => x.Name) //Sort now (before formatting the names) so that the sort order is the same as when the files are created
 				.ToList()
+				.AsReadOnly()
 			);
 			this.Children = (
 				dir.EnumerateDirectories()
 				.Where(f => !f.Name.StartsWith("."))
-				//.OrderByNatural(x => x.Name) //See above
 				.ToList()
+				.AsReadOnly()
 			);
 		}
 
@@ -53,6 +53,12 @@ namespace FolioWebGen.BackEnd
 		public bool TryGetVarValue(string name, out string value)
 		{
 			return TryGetLongVarValue(name, out value) || TryGetShortVarValue(name, out value);
+		}
+
+		/// <param name="name">Case insensitive</param>
+		public string GetVarValueOrNull(string name)
+		{
+			return TryGetVarValue(name, out string value) ? value : null;
 		}
 
 		private bool TryGetLongVarValue(string name, out string value)
@@ -83,10 +89,40 @@ namespace FolioWebGen.BackEnd
 			return true;
 		}
 
-		/// <param name="name">Case insensitive</param>
-		public string GetVarValueOrNull(string name)
+		public bool TryReadVar(FileInfo varFile, out (string name, string value) result)
 		{
-			return TryGetVarValue(name, out string value) ? value : null;
+			return TryReadLongVar(varFile, out result) || TryReadShortVar(varFile.Name, out result);
+		}
+
+		/// <summary>
+		/// Reads a variable-file.
+		/// Returns (<see langword="null"/>, <see langword="null"/>) if the file is not a valid variable file.
+		/// </summary>
+		public (string name, string value) ReadVar(FileInfo varFile)
+		{
+			return TryReadVar(varFile, out (string, string) result) ? result : default;
+		}
+
+		public bool TryReadLongVar(FileInfo varFile, out (string name, string value) result)
+		{
+			if (varFile == null) throw new ArgumentNullException(nameof(varFile));
+
+			result = (
+				name: Regex.Match(varFile.Name, @"(?<=\$).+(?=\.var)").Value,
+				value: File.ReadAllText(varFile.FullName)
+			);
+			return result.name != "";
+		}
+
+		public bool TryReadShortVar(string varFileName, out (string name, string value) result)
+		{
+			if (varFileName == null) throw new ArgumentNullException(nameof(varFileName));
+
+			result = (
+				name: Regex.Match(varFileName, @"(?<=\$).+(?=\$\=.+\.var)").Value,
+				value: Regex.Match(varFileName, @"(?<=\$.+\$\=).+(?=\.var)").Value
+			);
+			return result.name != "";
 		}
 	}
 }
