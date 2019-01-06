@@ -20,7 +20,20 @@ namespace FolioWebGen.BackEnd
 
 		public string UrlName { get; }
 
-		public Page Parent { get; private set; }
+		private Page _parent;
+		public Page Parent {
+			get => _parent;
+			private set {
+				if (this._parent != null) throw new InvalidOperationException(
+					"Page '" + this.FileName + "' in already has a parent '" + this.Parent.FileName + "'."
+				);
+				else if (this.IsLockedAsRoot) throw new InvalidOperationException(
+					"Page '" + this.FileName + "' is locked as a root page "
+					+ "so cannot be used as a child page."
+				);
+				else this.Parent = value;
+			}
+		}
 		public bool IsRoot => Parent == null;
 		public bool IsLockedAsRoot { get; private set; }
 		public void LockAsRoot() {
@@ -69,14 +82,11 @@ namespace FolioWebGen.BackEnd
 
 			foreach (var child in children)
 			{
-				if (child.Parent != null) throw new ArgumentException(
-					"Page '" + child.FileName + "' in child pages list already has a parent '" + child.Parent + "'."
-				);
-				else if (child.IsLockedAsRoot) throw new ArgumentException(
-					"Page '" + child.FileName + "' in child pages list is locked as a root page "
-					+ "so cannot be used as a child page."
-				);
-				else child.Parent = this;
+				try {
+					child.Parent = this;
+				} catch (InvalidOperationException e) {
+					throw new ArgumentException("Error setting parent of provided child page '" + child.FileName + "'.", e);
+				}
 			}
 
 			this.FileName = fileName;

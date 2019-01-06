@@ -52,6 +52,8 @@ namespace FolioWebGen.BackEnd
 			);
 
 			//TODO: $hidden-files$.var
+			//TODO: Allow variables to have comments in the name
+			//and prevent variables from being read as erroneous page sections
 		}
 
 		public static IEnumerable<PageSection> GetPageSections(IReadOnlyList<MultiFormatFile> pageContent)

@@ -30,7 +30,7 @@ namespace FolioWebGen.BackEnd
 
 			this.Variables = new List<FileInfo>(
 				Enumerable.Concat(
-					dir.GetFiles("$*=*.var"), //TODO: Change to "$*$=*.var" (have to search for .var files to make this change)
+					dir.GetFiles("$*$=*.var"),
 					dir.GetFiles("$*$.var")
 				)
 			).AsReadOnly();
