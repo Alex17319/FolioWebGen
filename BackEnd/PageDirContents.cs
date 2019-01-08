@@ -14,13 +14,14 @@ namespace FolioWebGen.BackEnd
 	{
 		public DirectoryInfo Dir { get; }
 		public string FileName { get; }
-		public string DisplayName { get; }
 
-		public ReadOnlyCollection<FileInfo> Variables { get; }
+		//	public ReadOnlyCollection<FileInfo> Variables { get; }
+		//	/// <summary>Unsorted (sorted later - the original file names are kept to keep the original order)</summary>
+		//	public ReadOnlyCollection<FileInfo> PageContent { get; }
 		/// <summary>Unsorted (sorted later - the original file names are kept to keep the original order)</summary>
-		public ReadOnlyCollection<FileInfo> PageContent { get; }
+		public ReadOnlyCollection<(FileInfo file, PageDirContentType type)> Contents { get; }
 		/// <summary>Unsorted (sorted later - the original file names are kept to keep the original order)</summary>
-		public ReadOnlyCollection<DirectoryInfo> Children { get; }
+		public ReadOnlyCollection<(DirectoryInfo, PageDirContentType type)> Children { get; }
 
 		public PageDirContents(DirectoryInfo dir)
 		{
@@ -28,101 +29,75 @@ namespace FolioWebGen.BackEnd
 
 			this.FileName = dir.Name;
 
-			this.Variables = new List<FileInfo>(
-				Enumerable.Concat(
-					dir.GetFiles("$*$=*.var"),
-					dir.GetFiles("$*$.var")
-				)
-			).AsReadOnly();
-
-			this.PageContent = (
+			var contents = (
 				dir.EnumerateFiles()
-				.Where(f => !f.Name.StartsWith("."))
+				.Select(f => (file: f, type: Categorise(f)))
 				.ToList()
-				.AsReadOnly()
 			);
-			this.Children = (
+			var children = (
 				dir.EnumerateDirectories()
-				.Where(f => !f.Name.StartsWith("."))
+				.Select(f => (file: f, type: Categorise(f)))
 				.ToList()
-				.AsReadOnly()
 			);
-		}
+			
+			//Flag additional hidden files and folders
+			foreach (var pattern in GetHiddenFilePatterns(contents))
+			{
+				for (int i = 0; i < contents.Count; i++) {
+					if (contents[i].type != PageDirContentType.PageSection) continue;
+					if (pattern.IsMatch(contents[i].file.Name)) {
+						contents[i] = (contents[i].file, PageDirContentType.Hidden);
+					}
+				}
 
-		/// <param name="name">Case insensitive</param>
-		public bool TryGetVarValue(string name, out string value)
-		{
-			return TryGetLongVarValue(name, out value) || TryGetShortVarValue(name, out value);
-		}
+				for (int i = 0; i < children.Count; i++) {
+					if (children[i].type != PageDirContentType.SubPage) continue;
+					if (pattern.IsMatch(children[i].file.Name)) {
+						children[i] = (children[i].file, PageDirContentType.Hidden);
+					}
+				}
+			}
 
-		/// <param name="name">Case insensitive</param>
-		public string GetVarValueOrNull(string name)
-		{
-			return TryGetVarValue(name, out string value) ? value : null;
-		}
-
-		private bool TryGetLongVarValue(string name, out string value)
-		{
-			string lookup = "$" + name + "$.var";
-
-			var varFile = Variables.SingleOrDefault(
-				v => string.Equals(v.Name, lookup, StringComparison.InvariantCultureIgnoreCase)
-			);
-
-			if (varFile == null) { value = null; return false; }
-
-			value = File.ReadAllText(varFile.FullName);
-			return true;
-		}
-
-		private bool TryGetShortVarValue(string name, out string value)
-		{
-			string lookup = "$" + name + "=";
-
-			var varFile = Variables.SingleOrDefault(
-				v => v.Name.StartsWith(lookup, StringComparison.InvariantCultureIgnoreCase)
-			);
-
-			if (varFile == null) { value = null; return false; }
-
-			value = Path.GetFileNameWithoutExtension(varFile.Name.Substring(startIndex: lookup.Length));
-			return true;
-		}
-
-		public bool TryReadVar(FileInfo varFile, out (string name, string value) result)
-		{
-			return TryReadLongVar(varFile, out result) || TryReadShortVar(varFile.Name, out result);
+			this.Contents = contents.AsReadOnly();
+			this.Children = children.AsReadOnly();
 		}
 
 		/// <summary>
-		/// Reads a variable-file.
-		/// Returns (<see langword="null"/>, <see langword="null"/>) if the file is not a valid variable file.
+		/// Returns one of <see cref="PageDirContentType.Hidden"/>, <see cref="PageDirContentType.PageSection"/>, or <see cref="PageDirContentType.Variable"/>.
 		/// </summary>
-		public (string name, string value) ReadVar(FileInfo varFile)
+		public static PageDirContentType Categorise(FileInfo file)
 		{
-			return TryReadVar(varFile, out (string, string) result) ? result : default;
+			if (file.Name.StartsWith(".")) return PageDirContentType.Hidden;
+			else if (Regex.IsMatch(file.Name, @"^\$.+\$\.var$")) return PageDirContentType.Variable;
+			else if (Regex.IsMatch(file.Name, @"^\$.+\$=.*\.var$")) return PageDirContentType.Variable;
+			else return PageDirContentType.PageSection;
 		}
 
-		public bool TryReadLongVar(FileInfo varFile, out (string name, string value) result)
+		/// <summary>
+		/// Returns either <see cref="PageDirContentType.Hidden"/> or <see cref="PageDirContentType.SubPage"/>.
+		/// </summary>
+		public static PageDirContentType Categorise(DirectoryInfo file)
 		{
-			if (varFile == null) throw new ArgumentNullException(nameof(varFile));
-
-			result = (
-				name: Regex.Match(varFile.Name, @"(?<=\$).+(?=\.var)").Value,
-				value: File.ReadAllText(varFile.FullName)
-			);
-			return result.name != "";
+			if (file.Name.StartsWith(".")) return PageDirContentType.Hidden;
+			else return PageDirContentType.PageSection;
 		}
 
-		public bool TryReadShortVar(string varFileName, out (string name, string value) result)
+		/// <summary>
+		/// Note: Hidden file lists don't use regex, but rather just use the pattern
+		/// rules '?'='any character' and '*'='any number of any character'.
+		/// This method converts these patterns to regex patterns for easy evaluation.
+		/// </summary>
+		private static IEnumerable<Regex> GetHiddenFilePatterns(IEnumerable<(FileInfo file, PageDirContentType type)> contents)
 		{
-			if (varFileName == null) throw new ArgumentNullException(nameof(varFileName));
-
-			result = (
-				name: Regex.Match(varFileName, @"(?<=\$).+(?=\$\=.+\.var)").Value,
-				value: Regex.Match(varFileName, @"(?<=\$.+\$\=).+(?=\.var)").Value
+			var hiddenFilesVar = VariableReader.ReadVar(
+				vars: contents.Where(x => x.type == PageDirContentType.Variable).Select(x => x.file),
+				name: PageVariables.HiddenFilesVarName
 			);
-			return result.name != "";
+			return (
+				hiddenFilesVar
+				.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+				.Select(pattern => new Regex(Regex.Escape(pattern).Replace("\\*", ".*").Replace("\\?", ".")))
+			);
 		}
 	}
 }

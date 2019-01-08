@@ -42,8 +42,9 @@ namespace FolioWebGen.BackEnd
 			return new Page(
 				fileName: dirContents.FileName,
 				sections: GetPageSections(
-					dirContents.PageContent
-					.Select(file => new SingleFormatFile(file))
+					dirContents.Contents
+					.Where(x => x.type == PageDirContentType.PageSection)
+					.Select(x => new SingleFormatFile(x.file))
 					.GroupBy(file => file.FileNameWithoutExtension, (name, files) => new MultiFormatFile(files))
 					.ToList()
 				),

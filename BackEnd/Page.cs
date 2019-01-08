@@ -25,7 +25,7 @@ namespace FolioWebGen.BackEnd
 			get => _parent;
 			private set {
 				if (this._parent != null) throw new InvalidOperationException(
-					"Page '" + this.FileName + "' in already has a parent '" + this.Parent.FileName + "'."
+					"Page '" + this.FileName + "' already has a parent '" + this.Parent.FileName + "'."
 				);
 				else if (this.IsLockedAsRoot) throw new InvalidOperationException(
 					"Page '" + this.FileName + "' is locked as a root page "
@@ -53,14 +53,14 @@ namespace FolioWebGen.BackEnd
 		}
 		/// <summary>Returns <see cref="ChainToRoot"/>, but excluding the current page.</summary>
 		public IEnumerable<Page> Ancestors => ChainToRoot.Skip(1);
-		/// <summary>Returns the root page, child-of-root page, and so on down the the current page.</summary>
+		/// <summary>Returns the root page, child-of-root page, and so on down to the current page.</summary>
 		public IEnumerable<Page> ChainFromRoot => ChainToRoot.Reverse(); //There isn't really anything more efficient than this
 
 		public Page Root => Ancestors.LastOrDefault() ?? this;
-		public string PathToRoot   => string.Join(DirSeparatorStr, Enumerable.Repeat("..", this.Ancestors.Count()));
-		public string PathFromRoot => string.Join(DirSeparatorStr, this.Ancestors.Select(a => a.UrlName)          );
-		public string PathTo(Page other) => PathBetween(this, other);
-		public string PathFrom(Page other) => PathBetween(other, this);
+		public string UrlPathToRoot   => string.Join(DirSeparatorStr, Enumerable.Repeat("..", this.Ancestors.Count())  );
+		public string UrlPathFromRoot => string.Join(DirSeparatorStr, this.ChainFromRoot.Skip(1).Select(a => a.UrlName));
+		public string UrlPathTo(Page other) => UrlPathBetween(this, other);
+		public string UrlPathFrom(Page other) => UrlPathBetween(other, this);
 
 		public ReadOnlyCollection<PageSection> Sections { get; }
 
@@ -126,7 +126,7 @@ namespace FolioWebGen.BackEnd
 					new XElement(
 						"link",
 						new XAttribute("rel", "stylesheet"),
-						new XAttribute("href", Path.Combine(PathToRoot, "styles.css")) //TODO: Maybe add a ?v=(hash) to the end of the url later to fix any caching issues (if that even applies)
+						new XAttribute("href", Path.Combine(UrlPathToRoot, "styles.css")) //TODO: Maybe add a ?v=(hash) to the end of the url later to fix any caching issues (if that even applies)
 					),
 					new XComment(
 						//Explanation at https://www.sitepoint.com/a-basic-html5-template/ ("Leveling the Playing Field")
@@ -249,7 +249,7 @@ namespace FolioWebGen.BackEnd
 			);
 		}
 
-		public static string PathBetween(Page start, Page end)
+		public static string UrlPathBetween(Page start, Page end)
 		{
 			var chain = ChainBetween(start, end);
 			return string.Join(
@@ -258,6 +258,18 @@ namespace FolioWebGen.BackEnd
 					Enumerable.Repeat("..", chain.up.Length)
 					//(don't include the peak of the chain)
 					.Concat(chain.down.Select(x => x.UrlName))
+				)
+			);
+		}
+		public static string FilePathBetween(Page start, Page end)
+		{
+			var chain = ChainBetween(start, end);
+			return string.Join(
+				separator: Path.DirectorySeparatorChar.ToString(),
+				values: (
+					Enumerable.Repeat("..", chain.up.Length)
+					//(don't include the peak of the chain)
+					.Concat(chain.down.Select(x => x.FileName))
 				)
 			);
 		}
@@ -280,7 +292,7 @@ namespace FolioWebGen.BackEnd
 			startRootChain.Reverse();
 			endRootChain.Reverse();
 
-			int numCommonAncestors = startRootChain.Zip(endRootChain, (s, e) => (s, e)).Count(x => x.s == x.e);
+			int numCommonAncestors = startRootChain.Zip(endRootChain, (s, e) => (s, e)).Count(x => object.ReferenceEquals(x.s, x.e));
 
 			int numUniqueStartAncestors = startRootChain.Count - numCommonAncestors;
 			int numUniqueEndAncestors = endRootChain.Count - numCommonAncestors;

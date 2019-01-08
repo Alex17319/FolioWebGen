@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,12 +20,14 @@ namespace FolioWebGen.BackEnd
 		public const string HtmlMetaVarName = "html-meta";
 		public IReadOnlyDictionary<string, string> HtmlPageMetaProperties { get; }
 
+		public const string HiddenFilesVarName = "hidden-files";
+
 		public PageVariables(PageDirContents pageDirContents)
 			: this(
 				new ReadOnlyDictionary<string, string>(
-					pageDirContents.Variables.Select(
-						varFile => pageDirContents.ReadVar(varFile)
-					).ToDictionary(
+					pageDirContents.Contents.Where(x => x.type == PageDirContentType.Variable)
+					.Select(x => VariableReader.ReadVar(x.file))
+					.ToDictionary(
 						keySelector: x => x.name,
 						elementSelector: x => x.value
 					)
@@ -41,8 +44,10 @@ namespace FolioWebGen.BackEnd
 				? new ReadOnlyDictionary<string, string>(
 					Enumerable.ToDictionary(
 						from line in fullMetaVar.Split('\r', '\n')
-						let name = line.Substring(0, line.IndexOf("="))
-						let value = line.Substring(line.IndexOf("=") + 1)
+						let eqIndex = line.IndexOf("=")
+						where eqIndex >= 0
+						let name = line.Substring(0, eqIndex)
+						let value = line.Substring(eqIndex + 1)
 						select (name, value),
 						keySelector: x => x.name,
 						elementSelector: x => x.value

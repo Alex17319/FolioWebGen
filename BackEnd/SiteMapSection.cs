@@ -36,7 +36,7 @@ namespace FolioWebGen.BackEnd
 		{
 			return new XElement(
 				"a",
-				new XAttribute("href", page.PathFromRoot),
+				new XAttribute("href", page.UrlPathFromRoot),
 				page.DisplayName,
 				new XElement(
 					"div",

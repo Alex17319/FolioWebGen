@@ -14,7 +14,7 @@ namespace FolioWebGen.BackEnd
 		/// <summary>Note: This is the name that is used for sorting</summary>
 		public string FileName { get; }
 		public string DisplayName { get; }
-		public string CodeName { get; }
+		public string UrlName { get; }
 
 		public abstract string Format { get; }
 
@@ -22,7 +22,7 @@ namespace FolioWebGen.BackEnd
 		{
 			this.FileName = string.IsNullOrWhiteSpace(fileName) ? "" : fileName;
 			this.DisplayName = StringUtils.GetItemDisplayName(fileName: this.FileName);
-			this.CodeName = StringUtils.GetItemUrlName(displayName: this.DisplayName);
+			this.UrlName = StringUtils.GetItemUrlName(displayName: this.DisplayName);
 		}
 
 		public abstract object SectionContentsToHtml(PageSectionContext ctx);

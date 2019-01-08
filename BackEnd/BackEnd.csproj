@@ -55,6 +55,7 @@
     <Compile Include="MultiFormatSection.cs" />
     <Compile Include="MultiSection.cs" />
     <Compile Include="PageDirContents.cs" />
+    <Compile Include="PageDirContentType.cs" />
     <Compile Include="PageVariables.cs" />
     <Compile Include="SingleFormatFile.cs" />
     <Compile Include="SiteMapSection.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="SimpleEmbedReg.cs" />
     <Compile Include="Utilities\StringUtils.cs" />
     <Compile Include="Utilities\Validator.cs" />
+    <Compile Include="VariableReader.cs" />
     <Compile Include="Website.cs" />
     <Compile Include="WebsiteMaker.cs" />
   </ItemGroup>
