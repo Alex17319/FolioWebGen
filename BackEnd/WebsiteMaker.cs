@@ -49,12 +49,8 @@ namespace FolioWebGen.BackEnd
 					.ToList()
 				),
 				children: dirContents.Children.Select(c => MakePage(c)),
-				pageMetadata: new ReadOnlyDictionary<string, string>(new Dictionary<string, string>()) //TODO: Page metadata
+				variables: dirContents.Variables
 			);
-
-			//TODO: $hidden-files$.var
-			//TODO: Allow variables to have comments in the name
-			//and prevent variables from being read as erroneous page sections
 		}
 
 		public static IEnumerable<PageSection> GetPageSections(IReadOnlyList<MultiFormatFile> pageContent)

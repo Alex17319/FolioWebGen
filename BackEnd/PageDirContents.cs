@@ -18,10 +18,13 @@ namespace FolioWebGen.BackEnd
 		//	public ReadOnlyCollection<FileInfo> Variables { get; }
 		//	/// <summary>Unsorted (sorted later - the original file names are kept to keep the original order)</summary>
 		//	public ReadOnlyCollection<FileInfo> PageContent { get; }
+		
 		/// <summary>Unsorted (sorted later - the original file names are kept to keep the original order)</summary>
 		public ReadOnlyCollection<(FileInfo file, PageDirContentType type)> Contents { get; }
 		/// <summary>Unsorted (sorted later - the original file names are kept to keep the original order)</summary>
 		public ReadOnlyCollection<(DirectoryInfo, PageDirContentType type)> Children { get; }
+
+		public PageVariables Variables { get; }
 
 		public PageDirContents(DirectoryInfo dir)
 		{
@@ -39,9 +42,13 @@ namespace FolioWebGen.BackEnd
 				.Select(f => (file: f, type: Categorise(f)))
 				.ToList()
 			);
+
+			this.Variables = new PageVariables(
+				contents.Where(x => x.type == PageDirContentType.Variable).Select(x => x.file)
+			);
 			
 			//Flag additional hidden files and folders
-			foreach (var pattern in GetHiddenFilePatterns(contents))
+			foreach (var pattern in this.Variables.HiddenFilePatterns)
 			{
 				for (int i = 0; i < contents.Count; i++) {
 					if (contents[i].type != PageDirContentType.PageSection) continue;
@@ -80,24 +87,6 @@ namespace FolioWebGen.BackEnd
 		{
 			if (file.Name.StartsWith(".")) return PageDirContentType.Hidden;
 			else return PageDirContentType.PageSection;
-		}
-
-		/// <summary>
-		/// Note: Hidden file lists don't use regex, but rather just use the pattern
-		/// rules '?'='any character' and '*'='any number of any character'.
-		/// This method converts these patterns to regex patterns for easy evaluation.
-		/// </summary>
-		private static IEnumerable<Regex> GetHiddenFilePatterns(IEnumerable<(FileInfo file, PageDirContentType type)> contents)
-		{
-			var hiddenFilesVar = VariableReader.ReadVar(
-				vars: contents.Where(x => x.type == PageDirContentType.Variable).Select(x => x.file),
-				name: PageVariables.HiddenFilesVarName
-			);
-			return (
-				hiddenFilesVar
-				.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-				.Select(pattern => new Regex(Regex.Escape(pattern).Replace("\\*", ".*").Replace("\\?", ".")))
-			);
 		}
 	}
 }

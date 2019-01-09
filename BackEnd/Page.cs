@@ -17,8 +17,13 @@ namespace FolioWebGen.BackEnd
 		/// <summary>Note: This is the name that is used for sorting</summary>
 		public string FileName { get; }
 		public string DisplayName { get; }
-
 		public string UrlName { get; }
+
+		public ReadOnlyCollection<PageSection> Sections { get; }
+
+		public ReadOnlyCollection<Page> Children { get; }
+
+		public PageVariables Variables { get; }
 
 		private Page _parent;
 		public Page Parent {
@@ -62,23 +67,17 @@ namespace FolioWebGen.BackEnd
 		public string UrlPathTo(Page other) => UrlPathBetween(this, other);
 		public string UrlPathFrom(Page other) => UrlPathBetween(other, this);
 
-		public ReadOnlyCollection<PageSection> Sections { get; }
-
-		public ReadOnlyCollection<Page> Children { get; }
-
-		public IReadOnlyDictionary<string, string> PageMetadata { get; }
-
 		/// <summary></summary>
 		/// <param name="fileName"></param>
 		/// <param name="sections"></param>
 		/// <param name="children">can be unordered</param>
-		/// <param name="pageMetadata"></param>
-		public Page(string fileName, IEnumerable<PageSection> sections, IEnumerable<Page> children, IReadOnlyDictionary<string, string> pageMetadata)
+		/// <param name="variables"></param>
+		public Page(string fileName, IEnumerable<PageSection> sections, IEnumerable<Page> children, PageVariables variables)
 		{
 			if (fileName == null) throw new ArgumentNullException(nameof(fileName));
 			if (sections == null) throw new ArgumentNullException(nameof(sections));
 			if (children == null) throw new ArgumentNullException(nameof(children));
-			if (pageMetadata == null) throw new ArgumentNullException(nameof(pageMetadata));
+			if (variables == null) throw new ArgumentNullException(nameof(variables));
 
 			foreach (var child in children)
 			{
@@ -94,7 +93,7 @@ namespace FolioWebGen.BackEnd
 			this.UrlName = StringUtils.GetItemUrlName(displayName: this.DisplayName);
 			this.Sections = sections.OrderByNatural(x => x.FileName).ToList().AsReadOnly();
 			this.Children = children.OrderByNatural(x => x.FileName).ToList().AsReadOnly();
-			this.PageMetadata = pageMetadata;
+			this.Variables = variables;
 		}
 
 		/// <summary>
@@ -117,7 +116,7 @@ namespace FolioWebGen.BackEnd
 						"title",
 						this.DisplayName + " - " + ctx.Website.SiteName
 					),
-					from meta in PageMetadata
+					from meta in Variables.HtmlPageMetaProperties
 					select new XElement(
 						"meta",
 						new XAttribute("name", meta.Key),

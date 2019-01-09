@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using FolioWebGen.Utilities;
 
 namespace FolioWebGen.BackEnd
 {
@@ -17,16 +18,41 @@ namespace FolioWebGen.BackEnd
 	{
 		public IReadOnlyDictionary<string, string> Variables { get; }
 
-		public const string HtmlMetaVarName = "html-meta";
-		public IReadOnlyDictionary<string, string> HtmlPageMetaProperties { get; }
-
 		public const string HiddenFilesVarName = "hidden-files";
+		private ReadOnlyCollection<Regex> _hiddenFilePatterns;
+		public ReadOnlyCollection<Regex> HiddenFilePatterns
+			=> _hiddenFilePatterns ?? (_hiddenFilePatterns = GetHiddenFilePatterns(this.Variables));
 
-		public PageVariables(PageDirContents pageDirContents)
+		public const string HtmlMetaVarName = "html-meta";
+		private ReadOnlyDictionary<string, string> _htmlPageMetaProperties;
+		public ReadOnlyDictionary<string, string> HtmlPageMetaProperties
+			=> _htmlPageMetaProperties ?? (_htmlPageMetaProperties = GetHtmlPageMetaProperties(this.Variables));
+
+		//	public PageVariables(PageDirContents pageDirContents)
+		//		: this(
+		//			new ReadOnlyDictionary<string, string>(
+		//				pageDirContents.Contents.Where(x => x.type == PageDirContentType.Variable)
+		//				.Select(x => VariableReader.ReadVar(x.file))
+		//				.ToDictionary(
+		//					keySelector: x => x.name,
+		//					elementSelector: x => x.value
+		//				)
+		//			)
+		//		)
+		//	{ }
+
+		public PageVariables(IEnumerable<FileInfo> varFiles)
 			: this(
 				new ReadOnlyDictionary<string, string>(
-					pageDirContents.Contents.Where(x => x.type == PageDirContentType.Variable)
-					.Select(x => VariableReader.ReadVar(x.file))
+					varFiles
+					.Select(x => VariableReader.ReadVar(x))
+					.Where(x => !string.IsNullOrEmpty(x.name))
+					.Distinct(
+						CustomEqualityComparer.Create<(string name, string value)>(
+							equals: (x, y) => x.name == y.name,
+							getHashCode: x => x.name.GetHashCode()
+						)
+					)
 					.ToDictionary(
 						keySelector: x => x.name,
 						elementSelector: x => x.value
@@ -38,12 +64,15 @@ namespace FolioWebGen.BackEnd
 		public PageVariables(IReadOnlyDictionary<string, string> variables)
 		{
 			this.Variables = variables;
+		}
 
-			this.HtmlPageMetaProperties = (
-				Variables.TryGetValue(HtmlMetaVarName, out string fullMetaVar)
-				? new ReadOnlyDictionary<string, string>(
+		private static ReadOnlyDictionary<string, string> GetHtmlPageMetaProperties(IReadOnlyDictionary<string, string> variables)
+		{
+			if (variables.TryGetValue(HtmlMetaVarName, out string v))
+			{
+				return new ReadOnlyDictionary<string, string>(
 					Enumerable.ToDictionary(
-						from line in fullMetaVar.Split('\r', '\n')
+						from line in v.Split('\r', '\n')
 						let eqIndex = line.IndexOf("=")
 						where eqIndex >= 0
 						let name = line.Substring(0, eqIndex)
@@ -52,11 +81,31 @@ namespace FolioWebGen.BackEnd
 						keySelector: x => x.name,
 						elementSelector: x => x.value
 					)
-				)
-				: new ReadOnlyDictionary<string, string>(new Dictionary<string, string>())
-			);
+				);
+			}
 
+			return new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());
+		}
 
+		/// <summary>
+		/// Note: Hidden file lists don't use regex, but rather just use the following pattern
+		/// rules: '?'=(any character) and '*'=(any number of any character).
+		/// This method converts these patterns to regex patterns for easy evaluation.
+		/// </summary>
+		private static ReadOnlyCollection<Regex> GetHiddenFilePatterns(IReadOnlyDictionary<string, string> variables)
+		{
+			if (variables.TryGetValue(HiddenFilesVarName, out string v))
+			{
+				return (
+					v
+					.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+					.Select(pattern => new Regex(Regex.Escape(pattern).Replace("\\*", ".*").Replace("\\?", ".")))
+					.ToList()
+					.AsReadOnly()
+				);
+			}
+
+			return new List<Regex>().AsReadOnly();
 		}
 	}
 }
