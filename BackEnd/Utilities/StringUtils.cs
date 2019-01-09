@@ -72,7 +72,15 @@ namespace FolioWebGen.Utilities
 		/// </summary>
 		public static string GetItemDisplayName(string fileName)
 		{
-			return RemoveEnclosedSubstrings(Path.GetFileNameWithoutExtension(fileName), '~', '`');
+			return RemoveComments(Path.GetFileNameWithoutExtension(fileName));
+		}
+
+		/// <summary>
+		/// Cuts out text surrounded by ~ or ` characters (interchangeably)
+		/// </summary>
+		public static string RemoveComments(string name)
+		{
+			return RemoveEnclosedSubstrings(name, '~', '`');
 		}
 
 		//Idk why I was trying to expand camelCase or similar into

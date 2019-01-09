@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FolioWebGen.Utilities;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -111,21 +112,21 @@ namespace FolioWebGen.BackEnd
 			if (varFile == null) throw new ArgumentNullException(nameof(varFile));
 
 			result = default; //allow use of short-circuiting && operator
-			return TryReadVarName(varFile.Name, out result.name) || TryReadVarValue(varFile, out result.value);
+			return TryReadVarName(varFile.Name, out result.name) && TryReadVarValue(varFile, out result.value);
 		}
 
 		public static bool TryReadVarName(string varFileName, out string name)
 		{
 			if (varFileName == null) throw new ArgumentNullException(nameof(varFileName));
 
-			return TryReadLongVarName(varFileName, out name) || TryReadShortVarName(varFileName, out name);
+			return TryReadShortVarName(varFileName, out name) || TryReadLongVarName(varFileName, out name);
 		}
 
 		public static bool TryReadVarValue(FileInfo varFile, out string value)
 		{
 			if (varFile == null) throw new ArgumentNullException(nameof(varFile));
 
-			return TryReadLongVarValue(varFile, out value) || TryReadShortVarValue(varFile.Name, out value);
+			return TryReadShortVarValue(varFile.Name, out value) || TryReadLongVarValue(varFile, out value);
 		}
 
 		//	public static bool TryReadLongVar(FileInfo varFile, out (string name, string value) result)
@@ -148,6 +149,8 @@ namespace FolioWebGen.BackEnd
 		{
 			if (varFileName == null) throw new ArgumentNullException(nameof(varFileName));
 
+			varFileName = RemoveComments(varFileName);
+
 			name = Regex.Match(varFileName, @"(?<=\$).+(?=\.var)").Value;
 			return name != ""; //empty string if no match
 		}
@@ -169,6 +172,8 @@ namespace FolioWebGen.BackEnd
 		{
 			if (varFileName == null) throw new ArgumentNullException(nameof(varFileName));
 
+			varFileName = RemoveComments(varFileName);
+
 			name = Regex.Match(varFileName, @"(?<=\$).+(?=\$\=.+\.var)").Value;
 			return name != ""; //empty string if no match
 		}
@@ -179,6 +184,14 @@ namespace FolioWebGen.BackEnd
 
 			value = Regex.Match(varFileName, @"(?<=\$.+\$\=).+(?=\.var)").Value;
 			return value != ""; //empty string if no match
+		}
+
+		/// <summary>
+		/// Cuts out text surrounded by ~ or ` characters (interchangeably), but leaves the file extension intact
+		/// </summary>
+		public static string RemoveComments(string varFileName)
+		{
+			return StringUtils.RemoveComments(Path.GetFileNameWithoutExtension(varFileName)) + Path.GetExtension(varFileName);
 		}
 	}
 }
