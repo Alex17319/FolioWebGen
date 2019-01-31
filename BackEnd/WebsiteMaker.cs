@@ -35,20 +35,21 @@ namespace FolioWebGen.BackEnd
 			);
 		}
 
-		public static Page MakePage(DirectoryInfo dir)
+		public static Page MakePage(DirectoryInfo dir, PageDirFolderType type)
 		{
 			var dirContents = new PageDirContents(dir);
 
 			return new Page(
 				fileName: dirContents.FileName,
+				type: type,
 				sections: GetPageSections(
 					dirContents.Contents
-					.Where(x => x.type == PageDirContentType.PageSection)
+					.Where(x => x.type == PageDirFileType.PageSection)
 					.Select(x => new SingleFormatFile(x.file))
 					.GroupBy(file => file.FileNameWithoutExtension, (name, files) => new MultiFormatFile(files))
 					.ToList()
 				),
-				children: dirContents.Children.Select(c => MakePage(c)),
+				children: dirContents.Children.Select(c => MakePage(c.dir, )),
 				variables: dirContents.Variables
 			);
 		}

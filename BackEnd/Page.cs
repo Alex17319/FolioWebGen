@@ -19,6 +19,9 @@ namespace FolioWebGen.BackEnd
 		public string DisplayName { get; }
 		public string UrlName { get; }
 
+		public PageDirFolderType Type { get; }
+		public bool IsHidden => Type == PageDirFolderType.Hidden;
+
 		public ReadOnlyCollection<PageSection> Sections { get; }
 
 		public ReadOnlyCollection<Page> Children { get; }
@@ -72,7 +75,7 @@ namespace FolioWebGen.BackEnd
 		/// <param name="sections"></param>
 		/// <param name="children">can be unordered</param>
 		/// <param name="variables"></param>
-		public Page(string fileName, IEnumerable<PageSection> sections, IEnumerable<Page> children, PageVariables variables)
+		public Page(string fileName, PageDirFolderType type, IEnumerable<PageSection> sections, IEnumerable<Page> children, PageVariables variables)
 		{
 			if (fileName == null) throw new ArgumentNullException(nameof(fileName));
 			if (sections == null) throw new ArgumentNullException(nameof(sections));
@@ -91,8 +94,12 @@ namespace FolioWebGen.BackEnd
 			this.FileName = fileName;
 			this.DisplayName = StringUtils.GetItemDisplayName(fileName: this.FileName);
 			this.UrlName = StringUtils.GetItemUrlName(displayName: this.DisplayName);
+
+			this.Type = type;
+
 			this.Sections = sections.OrderByNatural(x => x.FileName).ToList().AsReadOnly();
 			this.Children = children.OrderByNatural(x => x.FileName).ToList().AsReadOnly();
+
 			this.Variables = variables;
 		}
 

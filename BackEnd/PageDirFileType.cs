@@ -12,12 +12,11 @@ using System.Threading.Tasks;
 
 namespace FolioWebGen.BackEnd
 {
-	public enum PageDirContentType
+	public enum PageDirFileType
 	{
 		Hidden,
 		PageSection,
 		Variable,
-		SubPage,
 	}
 }
 
