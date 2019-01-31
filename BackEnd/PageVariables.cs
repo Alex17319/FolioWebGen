@@ -74,7 +74,7 @@ namespace FolioWebGen.BackEnd
 					Enumerable.ToDictionary(
 						from line in v.Split('\r', '\n')
 						let eqIndex = line.IndexOf("=")
-						where eqIndex >= 0
+						where eqIndex >= 1
 						let name = line.Substring(0, eqIndex)
 						let value = line.Substring(eqIndex + 1)
 						select (name, value),
@@ -104,8 +104,7 @@ namespace FolioWebGen.BackEnd
 					.AsReadOnly()
 				);
 			}
-
-			return new List<Regex>().AsReadOnly();
+			else return new List<Regex>().AsReadOnly();
 		}
 	}
 }

@@ -22,6 +22,8 @@ namespace FolioWebGen.BackEnd
 
 		public FileInfo FileInfo { get; }
 
+		public bool IsHidden { get; }
+
 		public string Extension => FileInfo.Extension;
 		
 		/// <summary>
@@ -30,9 +32,10 @@ namespace FolioWebGen.BackEnd
 		/// </summary>
 		public string Path => FileInfo.FullName;
 
-		public SingleFormatFile(FileInfo fileInfo)
+		public SingleFormatFile(FileInfo fileInfo, bool isHidden)
 		{
 			this.FileInfo = fileInfo;
+			this.IsHidden = isHidden;
 			this.FileName = fileInfo.Name;
 			this.FileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(fileInfo.Name);
 			this.DisplayName = StringUtils.GetItemDisplayName(fileInfo.Name);

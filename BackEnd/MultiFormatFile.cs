@@ -31,7 +31,7 @@ namespace FolioWebGen.BackEnd
 			//same (not just the display names as I'd previously intended).
 			//Additionally, the filename has to be kept until the Page/PageSections are created,
 			//so combined with the above new sorting/duplication rule that means that the display
-			//names don't need to be generate until then.
+			//names don't need to be generated until then.
 
 			this.ExtensionlessFileName = Path.GetFileNameWithoutExtension(this.Files[0].FileName);
 
@@ -41,12 +41,12 @@ namespace FolioWebGen.BackEnd
 			{
 				if (Path.GetFileNameWithoutExtension(this.Files[i].FileName) != this.ExtensionlessFileName)
 				{
-					differentFileNames = differentFileNames ?? null;
+					differentFileNames = differentFileNames ?? new List<string>();
 					differentFileNames.Add(this.Files[i].FileName);
 				}
 			}
 			if (differentFileNames != null) throw new ArgumentException(
-				$"The first file has file name '{this.Files[0].FileName}' " //don't use this.ExtensionlessFileName as it's extensionless
+				$"The first file has file name '{this.Files[0].FileName}' " //don't use this.ExtensionlessFileName as the extension is useful information
 				+ "but some other files have different file names: "
 				+ string.Join(", ", differentFileNames)
 				+ "."

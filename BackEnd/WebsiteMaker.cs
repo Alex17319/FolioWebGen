@@ -17,7 +17,7 @@ namespace FolioWebGen.BackEnd
 		{
 			return new Website(
 				siteName: "E-Portfolio",
-				root: MakePage(root),
+				root: MakePage(root, isHidden: false),
 				extReg: new ExternalContentReg(
 					new SimpleEmbedReg<Image>(
 						sourceRoot: new DirectoryInfo("TODO"),
@@ -35,13 +35,13 @@ namespace FolioWebGen.BackEnd
 			);
 		}
 
-		public static Page MakePage(DirectoryInfo dir, PageDirFolderType type)
+		public static Page MakePage(DirectoryInfo dir, bool isHidden)
 		{
 			var dirContents = new PageDirContents(dir);
 
 			return new Page(
 				fileName: dirContents.FileName,
-				type: type,
+				isHidden: isHidden,
 				sections: GetPageSections(
 					dirContents.Contents
 					.Where(x => x.type == PageDirFileType.PageSection)
@@ -49,7 +49,12 @@ namespace FolioWebGen.BackEnd
 					.GroupBy(file => file.FileNameWithoutExtension, (name, files) => new MultiFormatFile(files))
 					.ToList()
 				),
-				children: dirContents.Children.Select(c => MakePage(c.dir, )),
+				children: dirContents.Children.Select(
+					c => MakePage(
+						dir: c.dir,
+						isHidden: c.type == PageDirFolderType.Hidden
+					)
+				),
 				variables: dirContents.Variables
 			);
 		}
@@ -114,7 +119,7 @@ namespace FolioWebGen.BackEnd
 
 		//Now that multiple formats need to be combined into a single section, displaying
 		//multiple images in one section is too difficult (though I'll still leave ImageSection
-		//capable of doing so)
+		//capable of doing so, just in case that's useful somewhere)
 		//	public static List<Image> GetConsecutiveImages(IReadOnlyList<MultiFormatFile> pageContent, int startIndex, out int nextIndex)
 		//	{
 		//		var images = new List<Image>();

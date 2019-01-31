@@ -14,7 +14,7 @@ namespace FolioWebGen.BackEnd
 
 		public override string Format => "Image";
 
-		public ImageSection(string fileName, IList<Image> images) : base(fileName)
+		public ImageSection(string fileName, bool isHidden, IList<Image> images) : base(fileName, isHidden)
 		{
 			this.Images = new ReadOnlyCollection<Image>(images ?? throw new ArgumentNullException(nameof(images)));
 		}
