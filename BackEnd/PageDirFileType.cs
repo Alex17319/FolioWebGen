@@ -14,8 +14,7 @@ namespace FolioWebGen.BackEnd
 {
 	public enum PageDirFileType
 	{
-		Hidden,
-		PageSection,
+		PageSection, //Hidden or visible, that gets categorised later
 		Variable,
 	}
 }

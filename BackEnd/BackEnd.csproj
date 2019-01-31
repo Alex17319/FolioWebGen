@@ -55,7 +55,6 @@
     <Compile Include="MultiFormatSection.cs" />
     <Compile Include="MultiSection.cs" />
     <Compile Include="PageDirContents.cs" />
-    <Compile Include="PageDirFolderType.cs" />
     <Compile Include="PageDirFileType.cs" />
     <Compile Include="PageVariables.cs" />
     <Compile Include="SingleFormatFile.cs" />

@@ -13,16 +13,16 @@ namespace FolioWebGen.BackEnd
 
 		public override string Format => "External Page";
 
-		public ExternalHtmlSection(string fileName, HtmlPage page) : base(fileName)
+		public ExternalHtmlSection(string fileName, PageVariables pageVariables, HtmlPage page) : base(fileName, pageVariables)
 		{
 			this.Page = page ?? throw new ArgumentNullException(nameof(page));
 		}
 
 		public override object SectionContentsToHtml(PageSectionContext ctx)
 		{
-			ctx.ExtReg.HtmlPages.Register(Page);
+			ctx.ExternalReg.HtmlPages.Register(Page);
 
-			return Page.ToHtml(ctx.ExtReg);
+			return Page.ToHtml(ctx.ExternalReg);
 		}
 	}
 }

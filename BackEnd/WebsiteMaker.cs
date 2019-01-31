@@ -17,7 +17,7 @@ namespace FolioWebGen.BackEnd
 		{
 			return new Website(
 				siteName: "E-Portfolio",
-				root: MakePage(root, isHidden: false),
+				root: MakePage(root),
 				extReg: new ExternalContentReg(
 					new SimpleEmbedReg<Image>(
 						sourceRoot: new DirectoryInfo("TODO"),
@@ -35,31 +35,28 @@ namespace FolioWebGen.BackEnd
 			);
 		}
 
-		public static Page MakePage(DirectoryInfo dir, bool isHidden)
+		public static Page MakePage(DirectoryInfo dir)
 		{
 			var dirContents = new PageDirContents(dir);
 
 			return new Page(
 				fileName: dirContents.FileName,
-				isHidden: isHidden,
 				sections: GetPageSections(
-					dirContents.Contents
+					pageContent: dirContents.Contents
 					.Where(x => x.type == PageDirFileType.PageSection)
 					.Select(x => new SingleFormatFile(x.file))
 					.GroupBy(file => file.FileNameWithoutExtension, (name, files) => new MultiFormatFile(files))
-					.ToList()
+					.ToList(),
+					pageVariables: dirContents.Variables
 				),
 				children: dirContents.Children.Select(
-					c => MakePage(
-						dir: c.dir,
-						isHidden: c.type == PageDirFolderType.Hidden
-					)
+					c => MakePage(c)
 				),
 				variables: dirContents.Variables
 			);
 		}
 
-		public static IEnumerable<PageSection> GetPageSections(IReadOnlyList<MultiFormatFile> pageContent)
+		public static IEnumerable<PageSection> GetPageSections(IReadOnlyList<MultiFormatFile> pageContent, PageVariables pageVariables)
 		{
 			for (int i = 0; i < pageContent.Count; i++) 
 			{
@@ -71,33 +68,34 @@ namespace FolioWebGen.BackEnd
 				foreach (var f in multiFile.Files)
 				{
 					if (FileTypes.IsRawTextDocument(f.Extension)) {
-						formats.Add(new RawTextSection(fileName, f.FileInfo.OpenText().ReadToEnd()));
+						formats.Add(new RawTextSection(fileName, pageVariables, f.FileInfo.OpenText().ReadToEnd()));
 						continue;
 					}
 
 					if (FileTypes.IsImage(f.Extension)) {
-						formats.Add(new ImageSection(fileName, new[] { new Image(f) }));
+						formats.Add(new ImageSection(fileName, pageVariables, new[] { new Image(f) }));
 						continue;
 					}
 
 					if (FileTypes.IsPdf(f.Extension)) {
-						formats.Add(new PdfSection(fileName, new Pdf(f)));
+						formats.Add(new PdfSection(fileName, pageVariables, new Pdf(f)));
 						continue;
 					}
 
 					if (FileTypes.IsExternalPage(f.Extension)) {
-						formats.Add(new ExternalHtmlSection(fileName, new HtmlPage(f)));
+						formats.Add(new ExternalHtmlSection(fileName, pageVariables, new HtmlPage(f)));
 						continue;
 					}
 
 					if (FileTypes.IsHtmlSnippet(f.Extension)) {
-						formats.Add(new HtmlSnippetSection(fileName, new HtmlSnippet(f.FileInfo.OpenText().ReadToEnd())));
+						formats.Add(new HtmlSnippetSection(fileName, pageVariables, new HtmlSnippet(f.FileInfo.OpenText().ReadToEnd())));
 						continue;
 					}
 
 					formats.Add(
 						new RawTextSection(
 							fileName,
+							pageVariables,
 							"ERROR: PAGE CONTENT ITEM TYPE \"" + f.Extension + "\" IS NOT RECOGNISED\r\n"
 							+ "FILE LOCATION IN WEBSITE GENERATOR INPUT: \"" + f.Path + "\"\r\n"
 							+ "FILE CONTENTS:\r\n"
@@ -112,7 +110,7 @@ namespace FolioWebGen.BackEnd
 				}
 				else
 				{
-					yield return new MultiFormatSection(formats);
+					yield return new MultiFormatSection(formats, pageVariables);
 				}
 			}
 		}

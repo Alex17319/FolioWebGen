@@ -22,7 +22,7 @@ namespace FolioWebGen.BackEnd
 		/// <summary>Unsorted (sorted later - the original file names are kept to keep the original order)</summary>
 		public ReadOnlyCollection<(FileInfo file, PageDirFileType type)> Contents { get; }
 		/// <summary>Unsorted (sorted later - the original file names are kept to keep the original order)</summary>
-		public ReadOnlyCollection<(DirectoryInfo dir, PageDirFolderType type)> Children { get; }
+		public ReadOnlyCollection<DirectoryInfo> Children { get; }
 
 		public PageVariables Variables { get; }
 
@@ -32,41 +32,40 @@ namespace FolioWebGen.BackEnd
 
 			this.FileName = dir.Name;
 
-			var contents = (
+			this.Contents = (
 				dir.EnumerateFiles()
 				.Select(f => (file: f, type: Categorise(f)))
 				.ToList()
+				.AsReadOnly()
 			);
-			var children = (
+			this.Children = (
 				dir.EnumerateDirectories()
-				.Select(f => (file: f, type: Categorise(f)))
 				.ToList()
+				.AsReadOnly()
 			);
 
 			this.Variables = new PageVariables(
-				contents.Where(x => x.type == PageDirFileType.Variable).Select(x => x.file)
+				this.Contents.Where(x => x.type == PageDirFileType.Variable).Select(x => x.file)
 			);
 			
-			//Flag additional hidden files and folders
-			foreach (var pattern in this.Variables.HiddenFilePatterns)
-			{
-				for (int i = 0; i < contents.Count; i++) {
-					if (contents[i].type != PageDirFileType.PageSection) continue;
-					if (pattern.IsMatch(contents[i].file.Name)) {
-						contents[i] = (contents[i].file, PageDirFileType.Hidden);
-					}
-				}
-
-				for (int i = 0; i < children.Count; i++) {
-					if (children[i].type != PageDirFolderType.SubPage) continue;
-					if (pattern.IsMatch(children[i].file.Name)) {
-						children[i] = (children[i].file, PageDirFolderType.Hidden);
-					}
-				}
-			}
-
-			this.Contents = contents.AsReadOnly();
-			this.Children = children.AsReadOnly();
+			//This will now be done later, by the Page and PageSection classes
+			//	//Flag additional hidden files and folders
+			//	foreach (var pattern in this.Variables.HiddenFilePatterns)
+			//	{
+			//		for (int i = 0; i < contents.Count; i++) {
+			//			if (contents[i].type != PageDirFileType.PageSection) continue;
+			//			if (pattern.IsMatch(contents[i].file.Name)) {
+			//				contents[i] = (contents[i].file, PageDirFileType.Hidden);
+			//			}
+			//		}
+			//	
+			//		for (int i = 0; i < children.Count; i++) {
+			//			if (children[i].type != PageDirFolderType.SubPage) continue;
+			//			if (pattern.IsMatch(children[i].file.Name)) {
+			//				children[i] = (children[i].file, PageDirFolderType.Hidden);
+			//			}
+			//		}
+			//	}
 		}
 
 		/// <summary>
@@ -74,19 +73,21 @@ namespace FolioWebGen.BackEnd
 		/// </summary>
 		public static PageDirFileType Categorise(FileInfo file)
 		{
-			if (file.Name.StartsWith(".")) return PageDirFileType.Hidden;
-			else if (Regex.IsMatch(file.Name, @"^\$.+\$\.var$")) return PageDirFileType.Variable;
+			//This will now be done later, by the Page and PageSection classes
+			// if (file.Name.StartsWith(".")) return PageDirFileType.Hidden;
+			if (Regex.IsMatch(file.Name, @"^\$.+\$\.var$")) return PageDirFileType.Variable;
 			else if (Regex.IsMatch(file.Name, @"^\$.+\$=.*\.var$")) return PageDirFileType.Variable;
 			else return PageDirFileType.PageSection;
 		}
 
-		/// <summary>
-		/// Returns either <see cref="PageDirFileType.Hidden"/> or <see cref="PageDirFileType.SubPage"/>.
-		/// </summary>
-		public static PageDirFolderType Categorise(DirectoryInfo file)
-		{
-			if (file.Name.StartsWith(".")) return PageDirFolderType.Hidden;
-			else return PageDirFolderType.SubPage;
-		}
+		//This will now be done later, by the Page and PageSection classes
+		//	/// <summary>
+		//	/// Returns either <see cref="PageDirFileType.Hidden"/> or <see cref="PageDirFileType.SubPage"/>.
+		//	/// </summary>
+		//	public static PageDirFolderType Categorise(DirectoryInfo file)
+		//	{
+		//		if (file.Name.StartsWith(".")) return PageDirFolderType.Hidden;
+		//		else return PageDirFolderType.SubPage;
+		//	}
 	}
 }

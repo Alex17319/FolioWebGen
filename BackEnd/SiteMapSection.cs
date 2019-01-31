@@ -14,7 +14,7 @@ namespace FolioWebGen.BackEnd
 
 		public override string Format => "Auto Site Map";
 
-		public SiteMapSection(string fileName) : base(fileName)
+		public SiteMapSection(string fileName, PageVariables pageVariables) : base(fileName, pageVariables)
 		{
 
 		}

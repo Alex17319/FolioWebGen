@@ -33,7 +33,7 @@ namespace FolioWebGen.BackEnd
 		public void Register(IEnumerable<T> items) { foreach (var item in items) Register(item); }
 		public void Register(params T[] items) { Register(items.AsEnumerable()); }
 
-		public string GetPath(T item)
+		public string GetPath(T item) //TODO: Document/clarify, maybe only allow registered items and store the paths
 		{
 			string relativePath = FileUtils.GetRelativePath(
 				fromPath: SourceRoot.FullName,

@@ -14,16 +14,16 @@ namespace FolioWebGen.BackEnd
 
 		public override string Format => "Image";
 
-		public ImageSection(string fileName, bool isHidden, IList<Image> images) : base(fileName, isHidden)
+		public ImageSection(string fileName, PageVariables pageVariables, IList<Image> images) : base(fileName, pageVariables)
 		{
 			this.Images = new ReadOnlyCollection<Image>(images ?? throw new ArgumentNullException(nameof(images)));
 		}
 
 		public override object SectionContentsToHtml(PageSectionContext ctx)
 		{
-			ctx.ExtReg.Images.Register(Images);
+			ctx.ExternalReg.Images.Register(Images);
 
-			return Images.Select(x => x.ToHtml(ctx.ExtReg));
+			return Images.Select(x => x.ToHtml(ctx.ExternalReg));
 		}
 	}
 }

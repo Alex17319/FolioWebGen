@@ -18,15 +18,18 @@ namespace FolioWebGen.BackEnd
 
 		public bool IsHidden { get; }
 
+		protected PageVariables PageVariables { get; }
+
 		public abstract string Format { get; }
 
-		public PageSection(string fileName, bool isHidden)
+		public PageSection(string fileName, PageVariables pageVariables)
 		{
 			this.FileName = string.IsNullOrWhiteSpace(fileName) ? "" : fileName;
 			this.DisplayName = StringUtils.GetItemDisplayName(fileName: this.FileName);
 			this.UrlName = StringUtils.GetItemUrlName(displayName: this.DisplayName);
 
-			this.IsHidden = isHidden;
+			this.PageVariables = pageVariables;
+			this.IsHidden = IsPageSectionHidden(fileName, pageVariables);
 		}
 
 		public abstract object SectionContentsToHtml(PageSectionContext ctx);
@@ -38,6 +41,9 @@ namespace FolioWebGen.BackEnd
 				SectionContentsToHtml(ctx)
 			);
 		}
+
+		public static bool IsPageSectionHidden(string fileName, PageVariables variables)
+			=> fileName.StartsWith(".") || variables.HiddenFilePatterns.Any(p => p.IsMatch(fileName));
 	}
 
 	public struct PageSectionContext
@@ -46,7 +52,7 @@ namespace FolioWebGen.BackEnd
 		public PageContext PageCtx;
 
 		public Website Website => PageCtx.Website;
-		public ExternalContentReg ExtReg => PageCtx.Website.ExtReg;
+		public ExternalContentReg ExternalReg => PageCtx.Website.ExternalReg;
 
 		public PageSectionContext(Page page, PageContext ctx) {
 			this.Page = page;

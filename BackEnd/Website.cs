@@ -12,13 +12,13 @@ namespace FolioWebGen.BackEnd
 	{
 		public string SiteName { get; }
 		public Page Root { get; }
-		public ExternalContentReg ExtReg { get; }
+		public ExternalContentReg ExternalReg { get; }
 
 		public Website(string siteName, Page root, ExternalContentReg extReg)
 		{
 			this.SiteName = siteName ?? throw new ArgumentNullException(nameof(siteName));
 			this.Root = root ?? throw new ArgumentNullException(nameof(root));
-			this.ExtReg = extReg ?? throw new ArgumentNullException(nameof(extReg));
+			this.ExternalReg = extReg ?? throw new ArgumentNullException(nameof(extReg));
 		}
 
 		//TODO: Add (asynchronous?) functions to convert this into all the files, folders,
@@ -29,7 +29,7 @@ namespace FolioWebGen.BackEnd
 			await Task.Run(() => WriteToDirectory(dir));
 		}
 
-		public async Task WriteToDirectory(DirectoryInfo dir)
+		public void WriteToDirectory(DirectoryInfo dir)
 		{
 
 		}

@@ -14,8 +14,8 @@ namespace FolioWebGen.BackEnd
 
 		public override string Format => " * ";
 
-		public MultiSection(string fileName, IEnumerable<(PageSection section, string label)> labelledSections)
-			: base(fileName)
+		public MultiSection(string fileName, PageVariables pageVariables, IEnumerable<(PageSection section, string label)> labelledSections)
+			: base(fileName, pageVariables)
 		{
 			this.LabelledSections = labelledSections.ToList().AsReadOnly();
 		}

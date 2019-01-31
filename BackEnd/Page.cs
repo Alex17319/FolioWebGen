@@ -25,7 +25,7 @@ namespace FolioWebGen.BackEnd
 
 		public ReadOnlyCollection<Page> Children { get; }
 
-		public PageVariables Variables { get; }
+		protected PageVariables Variables { get; }
 
 		private Page _parent;
 		public Page Parent {
@@ -38,7 +38,7 @@ namespace FolioWebGen.BackEnd
 					"Page '" + this.FileName + "' is locked as a root page "
 					+ "so cannot be used as a child page."
 				);
-				else this.Parent = value;
+				else this._parent = value;
 			}
 		}
 		public bool IsRoot => Parent == null;
@@ -74,7 +74,7 @@ namespace FolioWebGen.BackEnd
 		/// <param name="sections"></param>
 		/// <param name="children">can be unordered</param>
 		/// <param name="variables"></param>
-		public Page(string fileName, bool isHidden, IEnumerable<PageSection> sections, IEnumerable<Page> children, PageVariables variables)
+		public Page(string fileName, IEnumerable<PageSection> sections, IEnumerable<Page> children, PageVariables variables)
 		{
 			if (fileName == null) throw new ArgumentNullException(nameof(fileName));
 			if (sections == null) throw new ArgumentNullException(nameof(sections));
@@ -94,12 +94,11 @@ namespace FolioWebGen.BackEnd
 			this.DisplayName = StringUtils.GetItemDisplayName(fileName: this.FileName);
 			this.UrlName = StringUtils.GetItemUrlName(displayName: this.DisplayName);
 
-			this.IsHidden = isHidden;
+			this.Variables = variables;
+			this.IsHidden = IsPageHidden(fileName, variables);
 
 			this.Sections = sections.OrderByNatural(x => x.FileName).ToList().AsReadOnly();
 			this.Children = children.OrderByNatural(x => x.FileName).ToList().AsReadOnly();
-
-			this.Variables = variables;
 		}
 
 		/// <summary>
@@ -254,6 +253,9 @@ namespace FolioWebGen.BackEnd
 			);
 		}
 
+		public static bool IsPageHidden(string fileName, PageVariables variables)
+			=> fileName.StartsWith(".") || variables.HiddenFilePatterns.Any(p => p.IsMatch(fileName));
+
 		public static string UrlPathBetween(Page start, Page end)
 		{
 			var chain = ChainBetween(start, end);
@@ -328,7 +330,7 @@ namespace FolioWebGen.BackEnd
 	{
 		public readonly Website Website;
 
-		public ExternalContentReg ExtReg => Website.ExtReg;
+		public ExternalContentReg ExtReg => Website.ExternalReg;
 
 		public PageContext(Website website) {
 			this.Website = website;

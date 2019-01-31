@@ -12,14 +12,15 @@ namespace FolioWebGen.BackEnd
 
 		public override string Format => "Html";
 
-		public HtmlSnippetSection(string fileName, HtmlSnippet snippet) : base(fileName)
+		public HtmlSnippetSection(string fileName, PageVariables pageVariables, HtmlSnippet snippet)
+			: base(fileName, pageVariables)
 		{
 			this.Snippet = snippet ?? throw new ArgumentNullException(nameof(snippet));
 		}
 
 		public override object SectionContentsToHtml(PageSectionContext ctx)
 		{
-			return Snippet.ToHtml(ctx.ExtReg);
+			return Snippet.ToHtml(ctx.ExternalReg);
 		}
 	}
 }

@@ -13,16 +13,16 @@ namespace FolioWebGen.BackEnd
 
 		public override string Format => "Pdf";
 
-		public PdfSection(string fileName, Pdf pdf) : base(fileName)
+		public PdfSection(string fileName, PageVariables pageVariables, Pdf pdf) : base(fileName, pageVariables)
 		{
 			this.Pdf = pdf ?? throw new ArgumentNullException(nameof(pdf));
 		}
 
 		public override object SectionContentsToHtml(PageSectionContext ctx)
 		{
-			ctx.PageCtx.Website.ExtReg.Pdfs.Register(Pdf);
+			ctx.PageCtx.Website.ExternalReg.Pdfs.Register(Pdf);
 
-			return Pdf.ToHtml(ctx.PageCtx.Website.ExtReg);
+			return Pdf.ToHtml(ctx.PageCtx.Website.ExternalReg);
 		}
 	}
 }
